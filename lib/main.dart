@@ -117,6 +117,7 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
   int index = 0;
 
   int _counter = 0;
+
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -195,13 +196,13 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
           // It doesn't look good when resizing from compact to open
           // PaneItemHeader(header: Text('User Interaction')),
           PaneItem(
-            icon: const Icon(FluentIcons.checkbox_composite),
-            title: const Text('Inputs'),
+            icon: const Icon(FluentIcons.analytics_view),
+            title: const Text('Server'),
           ),
         ],
         autoSuggestBox: AutoSuggestBox(
           controller: TextEditingController(),
-          items: const ['Item 1', 'Item 2', 'Item 3', 'Item 4'],
+          items: const ['Server'],
         ),
         autoSuggestBoxReplacement: const Icon(FluentIcons.search),
         footerItems: [
@@ -213,7 +214,7 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
         ],
       ),
       content: NavigationBody(index: index, children: const [
-        IconsPage(),
+        MainPage(),
         //Settings(controller: settingsController),
       ]),
     );
@@ -251,45 +252,74 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
   }
 }
 
-class IconsPage extends StatefulWidget {
-  const IconsPage({Key? key}) : super(key: key);
+class MainPage extends StatefulWidget {
+  const MainPage({Key? key}) : super(key: key);
 
   @override
-  _IconsPageState createState() => _IconsPageState();
+  _MainPageState createState() => _MainPageState();
 }
 
-class _IconsPageState extends State<IconsPage> {
+class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
-    String filterText = '';
-
     assert(debugCheckHasFluentTheme(context));
     final padding = PageHeader.horizontalPadding(context);
 
     return ScaffoldPage(
-      header: PageHeader(
-        title: const Text('Remote Input Server'),
-        commandBar: SizedBox(
-          width: 240.0,
-          child: Tooltip(
-            message: 'Filter by name',
-            child: TextBox(
-              suffix: const Icon(FluentIcons.search),
-              placeholder: 'Flter actions by name...',
-              onChanged: (value) => setState(() {
-                filterText = value;
-              }),
-            ),
+        header: const PageHeader(
+          title: Text('Remote Input Server'),
+          commandBar: SizedBox(
+            width: 240.0,
+            child: ServerStatusText(ServerStatus.offline),
           ),
         ),
-      ),
-      bottomBar: const InfoBar(
-        title: Text('Tip:'),
-        content: Text(
-          'You can click on any icon to execute the action.',
+        bottomBar: const InfoBar(
+          title: Text('Tip:'),
+          content: Text(
+            'You can click on any icon to execute the action.',
+          ),
         ),
-      ),
-      content: GridView.extent(
+        content: Container(
+          constraints: const BoxConstraints.expand(),
+          padding: EdgeInsets.only(
+            top: kPageDefaultVerticalPadding,
+            right: padding,
+            left: padding,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextFormBox(
+                  header: 'Port',
+                  placeholder: '5050',
+                  autovalidateMode: AutovalidateMode.always,
+                  keyboardType: TextInputType.number,
+                  validator: (text) {
+                    if (text == null || text.isEmpty) return 'Provide a port';
+                    if (int.tryParse(text) != null) return 'Port not valid';
+                    return null;
+                  },
+                  textInputAction: TextInputAction.next,
+                  initialValue: "5050",
+                  prefix: const Padding(
+                    padding: EdgeInsetsDirectional.only(start: 8.0),
+                    child: Icon(FluentIcons.plug),
+                  ),
+                ),
+              ),
+              Container(
+                width: 120,
+                child: FilledButton(
+                  onPressed: () {  },
+                  child: const Text('Start Server'),
+                ),
+              )
+            ],
+          ),
+        )
+
+      /*GridView.extent(
         maxCrossAxisExtent: 150,
         mainAxisSpacing: 10,
         crossAxisSpacing: 10,
@@ -298,10 +328,73 @@ class _IconsPageState extends State<IconsPage> {
           right: padding,
           left: padding,
         ),
-        children: [Button(child: const Text('Mouse Left Click'), onPressed: () async {
-          Future.delayed(const Duration(seconds: 1), () =>  mouseClick(MouseKeys.left));
-        })],
-      ),
+        children: [
+          Button(
+              child: const Text('Mouse Left Click'),
+              onPressed: () async {
+                Future.delayed(const Duration(seconds: 1),
+                    () => mouseClick(MouseKeys.left));
+              })
+        ],
+      ),*/
+    );
+  }
+}
+
+enum ServerStatus { online, offline }
+
+class ServerStatusText extends StatelessWidget {
+  final ServerStatus status;
+
+  const ServerStatusText(this.status, {
+    Key? key,
+  }) : super(key: key);
+
+  get statusColor {
+    switch (status) {
+      case ServerStatus.online:
+        return Colors.green;
+      case ServerStatus.offline:
+        return Colors.red;
+    }
+  }
+
+  get statusText {
+    switch (status) {
+      case ServerStatus.online:
+        return "Online";
+      case ServerStatus.offline:
+        return "Offline";
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Text("Status: ", style: TextStyle(
+          fontSize: 16,
+        ),),
+        Text(
+          statusText,
+          style: TextStyle(
+            color: statusColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.only(left: 7),
+          width: 17.0,
+          height: 17.0,
+          decoration: BoxDecoration(
+            color: statusColor,
+            shape: BoxShape.circle,
+          ),
+        ),
+      ],
     );
   }
 }
