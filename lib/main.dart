@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:remotecontrol/model.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:window_manager/window_manager.dart';
@@ -211,6 +212,10 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
           ),
         ],
       ),
+      content: NavigationBody(index: index, children: const [
+        IconsPage(),
+        //Settings(controller: settingsController),
+      ]),
     );
   }
 
@@ -246,3 +251,57 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
   }
 }
 
+class IconsPage extends StatefulWidget {
+  const IconsPage({Key? key}) : super(key: key);
+
+  @override
+  _IconsPageState createState() => _IconsPageState();
+}
+
+class _IconsPageState extends State<IconsPage> {
+  @override
+  Widget build(BuildContext context) {
+    String filterText = '';
+
+    assert(debugCheckHasFluentTheme(context));
+    final padding = PageHeader.horizontalPadding(context);
+
+    return ScaffoldPage(
+      header: PageHeader(
+        title: const Text('Remote Input Server'),
+        commandBar: SizedBox(
+          width: 240.0,
+          child: Tooltip(
+            message: 'Filter by name',
+            child: TextBox(
+              suffix: const Icon(FluentIcons.search),
+              placeholder: 'Flter actions by name...',
+              onChanged: (value) => setState(() {
+                filterText = value;
+              }),
+            ),
+          ),
+        ),
+      ),
+      bottomBar: const InfoBar(
+        title: Text('Tip:'),
+        content: Text(
+          'You can click on any icon to execute the action.',
+        ),
+      ),
+      content: GridView.extent(
+        maxCrossAxisExtent: 150,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        padding: EdgeInsets.only(
+          top: kPageDefaultVerticalPadding,
+          right: padding,
+          left: padding,
+        ),
+        children: [Button(child: const Text('Mouse Left Click'), onPressed: () async {
+          Future.delayed(const Duration(seconds: 1), () =>  mouseClick(MouseKeys.left));
+        })],
+      ),
+    );
+  }
+}
