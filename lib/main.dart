@@ -1,5 +1,10 @@
+// ignore_for_file: avoid_print
+
+import 'dart:ffi';
+
 import 'package:flutter/foundation.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:gap/gap.dart';
 import 'package:remotecontrol/model.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:url_strategy/url_strategy.dart';
@@ -9,7 +14,7 @@ import 'package:flutter_acrylic/flutter_acrylic.dart' as flutter_acrylic;
 
 import 'theme.dart';
 
-const String appTitle = 'Remote Controller Server';
+const String appTitle = 'Remote Input Server';
 
 /// Checks if the current environment is a desktop environment.
 bool get isDesktop {
@@ -161,11 +166,11 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
         actions: kIsWeb
             ? null
             : DragToMoveArea(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [Spacer()],
-          ),
-        ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [Spacer()],
+                ),
+              ),
       ),
       pane: NavigationPane(
         selected: index,
@@ -286,40 +291,53 @@ class _MainPageState extends State<MainPage> {
             right: padding,
             left: padding,
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
             children: [
-              Expanded(
-                child: TextFormBox(
-                  header: 'Port',
-                  placeholder: '5050',
-                  autovalidateMode: AutovalidateMode.always,
-                  keyboardType: TextInputType.number,
-                  validator: (text) {
-                    if (text == null || text.isEmpty) return 'Provide a port';
-                    if (int.tryParse(text) != null) return 'Port not valid';
-                    return null;
-                  },
-                  textInputAction: TextInputAction.next,
-                  initialValue: "5050",
-                  prefix: const Padding(
-                    padding: EdgeInsetsDirectional.only(start: 8.0),
-                    child: Icon(FluentIcons.plug),
+              Row(
+                children: [
+                  TextButtonInput(
+                    header: 'Port',
+                    placeholder: '5050',
+                    initialValue: '5050',
+                    onPressed: () => print("clicked"),
+                    buttonText: 'Start Server',
+                    autovalidateMode: AutovalidateMode.always,
+                    keyboardType: TextInputType.number,
+                    validator: (text) {
+                      if (text == null || text.isEmpty) return 'Provide a port';
+                      if (int.tryParse(text) != null) return 'Port not valid';
+                      return null;
+                    },
+                    icon: const Icon(FluentIcons.plug),
                   ),
+                ],
+              ),
+              const Gap(10),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text("Log"),
+                        Text(
+                          "Server Ip: 127.0.0.1:5050",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const Gap(5),
+                    const Expanded(child: LogBox()),
+                  ],
                 ),
               ),
-              Container(
-                width: 120,
-                child: FilledButton(
-                  onPressed: () {  },
-                  child: const Text('Start Server'),
-                ),
-              )
             ],
           ),
         )
 
-      /*GridView.extent(
+        /*GridView.extent(
         maxCrossAxisExtent: 150,
         mainAxisSpacing: 10,
         crossAxisSpacing: 10,
@@ -337,6 +355,124 @@ class _MainPageState extends State<MainPage> {
               })
         ],
       ),*/
+        );
+  }
+}
+
+class LogBox extends StatefulWidget {
+  const LogBox({Key? key}) : super(key: key);
+
+  @override
+  State<LogBox> createState() => _LogBoxState();
+}
+
+class _LogBoxState extends State<LogBox> {
+  final _logController = TextEditingController();
+
+  void log(String message) {
+    setState(() {
+      _logController.text = _logController.text + message;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _logController.addListener(() {
+      if (_logController.text.length == 1 && mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _logController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextBox(
+      expands: true,
+      maxLines: null,
+      minLines: null,
+      controller: _logController,
+      suffixMode: OverlayVisibilityMode.always,
+      suffix: _logController.text.isEmpty
+          ? null
+          : IconButton(
+              icon: const Icon(FluentIcons.chrome_close),
+              onPressed: () {
+                _logController.clear();
+              },
+            ),
+      placeholder: 'Events will display here',
+    );
+  }
+}
+
+class TextButtonInput extends StatelessWidget {
+  final void Function() onPressed;
+  final String header;
+  final String placeholder;
+  final String? initialValue;
+  final String buttonText;
+  final AutovalidateMode? autovalidateMode;
+  final TextInputType? keyboardType;
+  final String? Function(String?)? validator;
+  final Icon? icon;
+
+  const TextButtonInput({
+    Key? key,
+    required this.onPressed,
+    required this.header,
+    required this.placeholder,
+    this.initialValue = '',
+    required this.buttonText,
+    this.autovalidateMode = AutovalidateMode.disabled,
+    this.keyboardType = TextInputType.text,
+    this.validator,
+    this.icon,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 150,
+          child: Expanded(
+            child: TextFormBox(
+              header: header,
+              placeholder: placeholder,
+              autovalidateMode: AutovalidateMode.always,
+              keyboardType: keyboardType,
+              validator: validator,
+              textInputAction: TextInputAction.next,
+              initialValue: initialValue,
+              prefix: icon != null
+                  ? Padding(
+                      padding: const EdgeInsetsDirectional.only(start: 8.0),
+                      child: icon,
+                    )
+                  : null,
+            ),
+          ),
+        ),
+        const Gap(8),
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: SizedBox(
+            width: 120,
+            height: 31,
+            child: FilledButton(
+              onPressed: onPressed,
+              child: Text(buttonText),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -346,7 +482,8 @@ enum ServerStatus { online, offline }
 class ServerStatusText extends StatelessWidget {
   final ServerStatus status;
 
-  const ServerStatusText(this.status, {
+  const ServerStatusText(
+    this.status, {
     Key? key,
   }) : super(key: key);
 
@@ -374,9 +511,12 @@ class ServerStatusText extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Text("Status: ", style: TextStyle(
-          fontSize: 16,
-        ),),
+        const Text(
+          "Status: ",
+          style: TextStyle(
+            fontSize: 16,
+          ),
+        ),
         Text(
           statusText,
           style: TextStyle(

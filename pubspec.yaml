@@ -43,6 +43,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.4
   win32: ^2.5.0
+  gap: ^2.0.0
 
 dev_dependencies:
   flutter_test:
