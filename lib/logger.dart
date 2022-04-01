@@ -1,9 +1,15 @@
 import 'package:intl/intl.dart';
 
-enum Level { error, info, warning, debug, trace }
+enum Level {
+  trace,
+  debug,
+  info,
+  warning,
+  error,
+}
 
 class LoggerSettings {
-  Level level;
+  Level defaultLevel;
   DateFormat dateFormat;
 
   /// Tha available [logFormat] variables are:
@@ -11,12 +17,12 @@ class LoggerSettings {
   String logFormat;
 
   LoggerSettings(
-      {required this.level, required this.dateFormat, required this.logFormat});
+      {required this.defaultLevel, required this.dateFormat, required this.logFormat});
 }
 
 class Logger {
   LoggerSettings settings = LoggerSettings(
-    level: Level.debug,
+    defaultLevel: Level.debug,
     dateFormat: DateFormat(DateFormat.HOUR24_MINUTE_SECOND),
     logFormat: '[%level%] %date%: %message%',
   );
@@ -42,7 +48,7 @@ class Logger {
     }
   }
 
-  Level get level => settings.level;
+  Level get defaultLevel => settings.defaultLevel;
 
   subscribe(Level level, void Function(Level, String) callback) {
     _listeners[level]?.add(callback);
@@ -52,9 +58,11 @@ class Logger {
     _listeners[level]?.remove(callback);
   }
 
-  _dispatch(Level level, String message) {
-    for (final listener in _listeners[level]!) {
-      listener(level, message);
+  _dispatch(Level messageLevel, String message) {
+    for (final level in _listeners.keys) {
+      if (messageLevel.index >= level.index) {
+        _listeners[level]?.forEach((callback) => callback(messageLevel, message));
+      }
     }
   }
 
@@ -68,11 +76,7 @@ class Logger {
   }
 
   log(String message, {Level? level}) {
-    if (level != null && level.index < this.level.index) {
-      return;
-    }
-
-    var messageLogLevel = level ?? this.level;
+    var messageLogLevel = level ?? defaultLevel;
     final formattedMessage = _format(message, messageLogLevel);
     _dispatch(messageLogLevel, formattedMessage);
   }
@@ -87,3 +91,5 @@ class Logger {
 
   trace(String message) => log(message, level: Level.trace);
 }
+
+final Logger logger = Logger.instance();

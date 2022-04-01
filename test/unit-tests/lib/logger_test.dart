@@ -52,7 +52,7 @@ void main() {
 
   test('Logger class instance works', () {
     final logger = Logger();
-    logger.settings.level = Level.warning;
+    logger.settings.defaultLevel = Level.warning;
     logger.settings.dateFormat = DateFormat(DateFormat.HOUR_MINUTE_SECOND);
 
     logger.subscribe(Level.error, (level, message) {
@@ -66,5 +66,43 @@ void main() {
     });
 
     logger.log('test');
+  });
+
+  test('Logger trace level subscribers should receive all messages', () {
+    final logger = Logger();
+    logger.settings.defaultLevel = Level.debug;
+
+    var counter = 0;
+
+    logger.subscribe(Level.trace, (level, message) {
+      counter++;
+    });
+
+    logger.trace('test');
+    logger.debug('test');
+    logger.info('test');
+    logger.warning('test');
+    logger.error('test');
+
+    expect(counter, 5);
+  });
+
+  test('Logger warning level subscribers should receive warning and error messages', () {
+    final logger = Logger();
+    logger.settings.defaultLevel = Level.debug;
+
+    var counter = 0;
+
+    logger.subscribe(Level.warning, (level, message) {
+      counter++;
+    });
+
+    logger.trace('test');
+    logger.debug('test');
+    logger.info('test');
+    logger.warning('test');
+    logger.error('test');
+
+    expect(counter, 2);
   });
 }
