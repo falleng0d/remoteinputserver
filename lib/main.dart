@@ -275,6 +275,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final TextEditingController _portController = TextEditingController(text: "9035");
+  ServerStatus _serverSatus = ServerStatus.offline;
 
   @override
   Widget build(BuildContext context) {
@@ -282,11 +283,11 @@ class _MainPageState extends State<MainPage> {
     final padding = PageHeader.horizontalPadding(context);
 
     return ScaffoldPage(
-        header: const PageHeader(
-          title: Text('Remote Input Server'),
+        header: PageHeader(
+          title: const Text('Remote Input Server'),
           commandBar: SizedBox(
             width: 240.0,
-            child: ServerStatusText(ServerStatus.offline),
+            child: ServerStatusText(_serverSatus),
           ),
         ),
         bottomBar: const InfoBar(
@@ -375,7 +376,12 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _startServer(int port) {
-    startRemoteInputServer(port, Logger.instance());
+    if (_serverSatus == ServerStatus.offline) {
+      startRemoteInputServer(port, Logger.instance());
+      setState(() {
+        _serverSatus = ServerStatus.online;
+      });
+    }
   }
 }
 
