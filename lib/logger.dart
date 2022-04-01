@@ -21,6 +21,13 @@ class Logger {
     logFormat: '[%level%] %date%: %message%',
   );
 
+  static final Logger _globalInstance = Logger();
+
+  /// The global instance of the logger.
+  factory Logger.instance() {
+    return _globalInstance;
+  }
+
   final Map<Level, List<void Function(Level, String)>> _listeners = {
     Level.error: [],
     Level.info: [],
@@ -41,13 +48,17 @@ class Logger {
     _listeners[level]?.add(callback);
   }
 
+  unsubscribe(Level level, void Function(Level, String) callback) {
+    _listeners[level]?.remove(callback);
+  }
+
   _dispatch(Level level, String message) {
     for (final listener in _listeners[level]!) {
       listener(level, message);
     }
   }
 
-  format(String message, Level level) {
+  _format(String message, Level level) {
     final date = settings.dateFormat.format(DateTime.now());
     final formattedMessage = settings.logFormat
         .replaceAll('%level%', level.name)
@@ -56,23 +67,23 @@ class Logger {
     return formattedMessage;
   }
 
-  log(String message, Level? level) {
+  log(String message, {Level? level}) {
     if (level != null && level.index < this.level.index) {
       return;
     }
 
     var messageLogLevel = level ?? this.level;
-    final formattedMessage = format(message, messageLogLevel);
+    final formattedMessage = _format(message, messageLogLevel);
     _dispatch(messageLogLevel, formattedMessage);
   }
 
-  debug(String message) => log(message, Level.debug);
+  debug(String message) => log(message, level: Level.debug);
 
-  info(String message) => log(message, Level.info);
+  info(String message) => log(message, level: Level.info);
 
-  warning(String message) => log(message, Level.warning);
+  warning(String message) => log(message, level: Level.warning);
 
-  error(String message) => log(message, Level.error);
+  error(String message) => log(message, level: Level.error);
 
-  trace(String message) => log(message, Level.trace);
+  trace(String message) => log(message, level: Level.trace);
 }

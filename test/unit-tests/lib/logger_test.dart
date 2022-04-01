@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:remotecontrol/logger.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   test('Logger should invoke subscribed callbacks', () {
@@ -43,5 +44,27 @@ void main() {
   test('Logger should not crash when there are no subscribers', () {
     final logger = Logger();
     logger.debug('test');
+  });
+
+  test('Logger has a class instance', () {
+    expect(Logger.instance, isNotNull);
+  });
+
+  test('Logger class instance works', () {
+    final logger = Logger();
+    logger.settings.level = Level.warning;
+    logger.settings.dateFormat = DateFormat(DateFormat.HOUR_MINUTE_SECOND);
+
+    logger.subscribe(Level.error, (level, message) {
+      fail('Should not be called');
+    });
+
+    logger.subscribe(Level.trace, (level, message) {
+      expect(level, Level.warning);
+      expect(message.contains('test'), true);
+      expect(message.contains('[warning]'), true);
+    });
+
+    logger.log('test');
   });
 }
