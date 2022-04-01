@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:gap/gap.dart';
 import 'package:remotecontrol/model.dart';
+import 'package:remotecontrol/server.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:window_manager/window_manager.dart';
@@ -145,9 +146,9 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
 
     logger.subscribe(Level.trace, (_, message) => print(message));
 
-    Timer mytimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    /*Timer mytimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       logger.trace('Timer tick');
-    });
+    });*/
   }
 
   @override
@@ -273,6 +274,8 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  final TextEditingController _portController = TextEditingController(text: "9035");
+
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasFluentTheme(context));
@@ -307,14 +310,19 @@ class _MainPageState extends State<MainPage> {
                   TextButtonInput(
                     header: 'Port',
                     placeholder: '9035',
-                    initialValue: '9035',
-                    onPressed: () => print("clicked"),
+                    onPressed: () {
+                      var port = int.tryParse(_portController.text);
+                      if (port != null) {
+                        _startServer(port);
+                      }
+                    },
                     buttonText: 'Start Server',
                     autovalidateMode: AutovalidateMode.always,
                     keyboardType: TextInputType.number,
+                    controller: _portController,
                     validator: (text) {
                       if (text == null || text.isEmpty) return 'Provide a port';
-                      if (int.tryParse(text) != null) return 'Port not valid';
+                      if (int.tryParse(text) == null) return 'Port not valid';
                       return null;
                     },
                     icon: const Icon(FluentIcons.plug),
@@ -365,6 +373,10 @@ class _MainPageState extends State<MainPage> {
       ),*/
         );
   }
+
+  void _startServer(int port) {
+    startRemoteInputServer(port, Logger.instance());
+  }
 }
 
 class LogBox extends StatefulWidget {
@@ -385,7 +397,9 @@ class _LogBoxState extends State<LogBox> {
       _logController.text = _logController.text + message + '\n';
 
       if (isScrollToEnd && _scrollController.hasClients) {
-        _scrollToEnd();
+        Future.delayed(const Duration(milliseconds: 10), (){
+          _scrollToEnd();
+        });
       }
     });
   }
@@ -395,7 +409,6 @@ class _LogBoxState extends State<LogBox> {
     return _scrollController.animateTo(maxScroll,
           duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
   }
-
 
   _LogBoxState() {
     _scrollController = ScrollController();
@@ -506,18 +519,20 @@ class TextButtonInput extends StatelessWidget {
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
   final Icon? icon;
+  final TextEditingController? controller;
 
   const TextButtonInput({
     Key? key,
     required this.onPressed,
     required this.header,
     required this.placeholder,
-    this.initialValue = '',
+    this.initialValue,
     required this.buttonText,
     this.autovalidateMode = AutovalidateMode.disabled,
     this.keyboardType = TextInputType.text,
     this.validator,
     this.icon,
+    this.controller,
   }) : super(key: key);
 
   @override
@@ -532,6 +547,7 @@ class TextButtonInput extends StatelessWidget {
             child: TextFormBox(
               header: header,
               placeholder: placeholder,
+              controller: controller,
               autovalidateMode: AutovalidateMode.always,
               keyboardType: keyboardType,
               validator: validator,
