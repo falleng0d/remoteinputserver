@@ -298,8 +298,8 @@ class _MainPageState extends State<MainPage> {
                 children: [
                   TextButtonInput(
                     header: 'Port',
-                    placeholder: '5050',
-                    initialValue: '5050',
+                    placeholder: '9035',
+                    initialValue: '9035',
                     onPressed: () => print("clicked"),
                     buttonText: 'Start Server',
                     autovalidateMode: AutovalidateMode.always,
