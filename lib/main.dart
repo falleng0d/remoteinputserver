@@ -40,9 +40,8 @@ void main() async {
     windowManager.waitUntilReadyToShow().then((_) async {
       await windowManager.setTitleBarStyle('hidden',
           windowButtonVisibility: false);
-      await windowManager.setSize(const Size(755, 545));
-      await windowManager.setMinimumSize(const Size(755, 545));
-      await windowManager.center();
+      await windowManager.setSize(const Size(545, 545));
+      await windowManager.setMinimumSize(const Size(545, 545));
       await windowManager.show();
       await windowManager.setPreventClose(true);
       await windowManager.setSkipTaskbar(false);
@@ -158,7 +157,48 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
             : DragToMoveArea(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [Spacer()],
+                  children: [
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Container(
+                          width: 45,
+                          height: 30,
+                          color: Colors.transparent,
+                          child: Row(
+                            children: [
+                              IconButton(
+                                  icon: const Icon(
+                                    FluentIcons.chrome_minimize,
+                                    color: Color.fromARGB(255, 154, 154, 154),
+                                  ),
+                                  onPressed: () {
+                                    WindowManager.instance.minimize();
+                                  }),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 45,
+                          height: 30,
+                          color: Colors.transparent,
+                          child: Row(
+                            children: [
+                              IconButton(
+                                  icon: const Icon(
+                                    FluentIcons.chrome_close,
+                                    color: Color.fromARGB(255, 154, 154, 154),
+                                  ),
+                                  onPressed: () {
+                                    WindowManager.instance.setPreventClose(false);
+                                    WindowManager.instance.close();
+                                  }),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
                 ),
               ),
       ),
@@ -166,7 +206,7 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
         selected: index,
         onChanged: (i) => setState(() => index = i),
         size: const NavigationPaneSize(
-          openMinWidth: 250,
+          openMinWidth: 100,
           openMaxWidth: 320,
         ),
         header: Container(
@@ -246,5 +286,3 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
     }
   }
 }
-
-
