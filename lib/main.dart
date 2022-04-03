@@ -190,7 +190,8 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
                                     color: Color.fromARGB(255, 154, 154, 154),
                                   ),
                                   onPressed: () {
-                                    WindowManager.instance.setPreventClose(false);
+                                    WindowManager.instance
+                                        .setPreventClose(false);
                                     WindowManager.instance.close();
                                   }),
                             ],
