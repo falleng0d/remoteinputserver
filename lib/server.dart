@@ -41,7 +41,7 @@ class InputServer {
       final response = request.response;
       final requestBody = await utf8.decodeStream(request);
 
-      _logger?.info('Remote input request: $requestBody');
+      _logger?.debug('Remote input request: $requestBody');
 
       response.write('OK');
       response.close();

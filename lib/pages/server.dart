@@ -1,4 +1,5 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 
 import '../components/log_box.dart';
@@ -21,6 +22,7 @@ class _ServerPageState extends State<ServerPage> {
   late InputServer _server;
 
   get isServerSarted => _serverSatus == ServerStatus.online;
+  String get serverIp => "127.0.0.1:${_portController.text}";
   ServerStatus _serverSatus = ServerStatus.offline;
 
   _ServerPageState() {
@@ -98,10 +100,21 @@ class _ServerPageState extends State<ServerPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text("Log"),
-                        Text(
-                          "Server Ip: 127.0.0.1:${_portController.text}",
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                        Row(
+                          children: [
+                            Text(
+                              "Server Ip: $serverIp",
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            IconButton(
+                              icon: const Icon(FluentIcons.copy),
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(text: serverIp)).
+                                then((_) => _logger.trace("Copied server ip to clipboard"));
+                              },
+                            ),
+                          ],
+                        )
                       ],
                     ),
                     const Gap(5),
