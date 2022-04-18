@@ -32,8 +32,8 @@ dependencies:
   fluent_ui:
     git: https://github.com/bdlukaa/fluent_ui.git
   flutter_acrylic: ^1.0.0+2
-  window_manager: ^0.2.0
-  system_theme: ^1.0.1
+  window_manager: ^0.2.1
+  system_theme: ^2.0.0
   url_strategy: ^0.2.0
   url_launcher: ^6.0.20
   provider: ^6.0.2
@@ -42,7 +42,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.4
-  win32: ^2.5.0
+  win32: ^2.5.1
   gap: ^2.0.0
   shelf: ^1.3.0
 

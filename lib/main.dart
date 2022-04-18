@@ -29,7 +29,7 @@ void main() async {
   if (kIsWeb ||
       [TargetPlatform.windows, TargetPlatform.android]
           .contains(defaultTargetPlatform)) {
-    SystemTheme.accentInstance;
+    SystemTheme.accentColor;
   }
 
   setPathUrlStrategy();
@@ -38,7 +38,7 @@ void main() async {
     await flutter_acrylic.Window.initialize();
     await WindowManager.instance.ensureInitialized();
     windowManager.waitUntilReadyToShow().then((_) async {
-      await windowManager.setTitleBarStyle('hidden',
+      await windowManager.setTitleBarStyle(TitleBarStyle.hidden,
           windowButtonVisibility: false);
       await windowManager.setSize(const Size(545, 545));
       await windowManager.setMinimumSize(const Size(545, 545));
@@ -219,13 +219,13 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
           ),
         ),
         displayMode: appTheme.displayMode,
-        indicatorBuilder: () {
+        indicator: () {
           switch (appTheme.indicator) {
             case NavigationIndicators.end:
-              return NavigationIndicator.end;
+              return const EndNavigationIndicator();
             case NavigationIndicators.sticky:
             default:
-              return NavigationIndicator.sticky;
+              return const StickyNavigationIndicator();
           }
         }(),
         items: [
