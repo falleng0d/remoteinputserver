@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+service InputMethods {
+    rpc PressKey(Key) returns (Key);
+}
+
+message Key {
+    int32 id = 1;
+}
