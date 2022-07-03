@@ -18,3 +18,20 @@ const Key$json = const {
 
 /// Descriptor for `Key`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List keyDescriptor = $convert.base64Decode('CgNLZXkSDgoCaWQYASABKAVSAmlk');
+@$core.Deprecated('Use responseDescriptor instead')
+const Response$json = const {
+  '1': 'Response',
+  '2': const [
+    const {'1': 'message', '3': 1, '4': 1, '5': 9, '10': 'message'},
+  ],
+};
+
+/// Descriptor for `Response`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseDescriptor = $convert.base64Decode('CghSZXNwb25zZRIYCgdtZXNzYWdlGAEgASgJUgdtZXNzYWdl');
+@$core.Deprecated('Use emptyDescriptor instead')
+const Empty$json = const {
+  '1': 'Empty',
+};
+
+/// Descriptor for `Empty`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List emptyDescriptor = $convert.base64Decode('CgVFbXB0eQ==');

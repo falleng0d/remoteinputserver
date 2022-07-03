@@ -5,7 +5,7 @@ import 'package:gap/gap.dart';
 import '../components/log_box.dart';
 import '../components/server_status.dart';
 import '../logger.dart';
-import '../server.dart';
+import '../server_pb.dart';
 
 const _defaultPort = 9035;
 
@@ -19,7 +19,7 @@ class ServerPage extends StatefulWidget {
 class _ServerPageState extends State<ServerPage> {
   final TextEditingController _portController = TextEditingController(text: "$_defaultPort");
   late Logger _logger;
-  late InputServer _server;
+  late InputServerPb _server;
 
   get isServerSarted => _serverSatus == ServerStatus.online;
   String get serverIp => "127.0.0.1:${_portController.text}";
@@ -27,7 +27,7 @@ class _ServerPageState extends State<ServerPage> {
 
   _ServerPageState() {
     _logger = Logger.instance();
-    _server = InputServer(_defaultPort, _logger);
+    _server = InputServerPb(_defaultPort, _logger);
   }
 
   @override

@@ -1,9 +1,15 @@
 syntax = "proto3";
 
 service InputMethods {
-    rpc PressKey(Key) returns (Key);
+    rpc PressKey(Key) returns (Response);
 }
 
 message Key {
     int32 id = 1;
 }
+
+message Response {
+    string message = 1;
+}
+
+message Empty {}

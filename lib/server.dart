@@ -1,12 +1,11 @@
-import 'dart:convert';
-
 import 'package:remotecontrol/components/server_status.dart';
 import 'package:remotecontrol/logger.dart';
 import 'dart:io';
-import 'package:stack_trace/stack_trace.dart';
 
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
+
+import 'middlewares.dart';
 
 class InputServer {
   HttpServer? _server;
@@ -14,7 +13,6 @@ class InputServer {
   ServerStatus _status = ServerStatus.offline;
   final Logger _logger;
   late InternetAddress _address;
-
 
   InputServer(this._port, this._logger, {InternetAddress? address}) {
     _address = address ?? InternetAddress.loopbackIPv4;
@@ -55,35 +53,3 @@ class InputServer {
     return Response.ok('Request for "${request.url}"');
   }
 }
-
-Middleware logRequestsMiddleware(Logger logger) => (handler) {
-      return (request) {
-        // var startTime = DateTime.now();
-        var watch = Stopwatch()..start();
-
-        return Future.sync(() => handler(request)).then((response) async {
-          var msg = '${request.method} ${request.requestedUri} '
-              '${response.statusCode} ${watch.elapsed.inMicroseconds}mic';
-
-          logger.debug(msg);
-          final requestBody = await request.readAsString(Encoding.getByName('UTF-8'));
-          logger.trace('Request body: $requestBody');
-
-          return response;
-        }, onError: (Object error, StackTrace stackTrace) {
-          if (error is HijackException) throw error;
-
-          var chain = Chain.current();
-          chain = Chain.forTrace(stackTrace)
-              .foldFrames((frame) => frame.isCore || frame.package == 'shelf')
-              .terse;
-
-          var msg = '${request.method} ${request.requestedUri} '
-              '${watch.elapsed} $error $chain';
-
-          logger.error(msg);
-
-          throw error;
-        });
-      };
-    };
