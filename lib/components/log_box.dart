@@ -17,7 +17,7 @@ class _LogBoxState extends State<LogBox> {
 
   void log(String message) {
     setState(() {
-      _logController.text = _logController.text + message + '\n';
+      _logController.text = '${_logController.text}$message\n';
 
       if (isScrollToEnd && _scrollController.hasClients) {
         Future.delayed(const Duration(milliseconds: 10), (){
@@ -28,9 +28,13 @@ class _LogBoxState extends State<LogBox> {
   }
 
   Future<void> _scrollToEnd() {
-    var maxScroll = _scrollController.position.maxScrollExtent;
-    return _scrollController.animateTo(maxScroll,
-        duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
+    if (_scrollController.hasClients) {
+      var maxScroll = _scrollController.position.maxScrollExtent;
+      return _scrollController.animateTo(maxScroll,
+          duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
+    }
+
+    return Future.value();
   }
 
   _LogBoxState() {
