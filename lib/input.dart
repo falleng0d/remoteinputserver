@@ -18,6 +18,34 @@ class MouseKeys {
   static const right = SystemKey(MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP);
 }
 
+enum ActionType {
+  UP,
+  DOWN,
+  PRESS
+}
+
+enum MouseActionType {
+  UP,
+  DOWN,
+  MOVE,
+  PRESS
+}
+
+class KBAction {
+  final ActionType type;
+  final int value;
+
+  const KBAction(this.type, {this.value = 1});
+}
+
+class MBAction {
+  final ActionType type;
+  final double x;
+  final double y;
+
+  const MBAction(this.type, {this.x = 0, this.y = 0});
+}
+
 Future<int> mouseClick(SystemKey key, {int interval = 50}) async {
   final mouse = calloc<INPUT>();
 

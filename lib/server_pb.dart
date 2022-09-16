@@ -6,24 +6,36 @@ import 'package:remotecontrol/proto/input.pbgrpc.dart' as pb;
 import 'package:remotecontrol/proto/input.pbgrpc.dart';
 import 'dart:io';
 
-import 'package:shelf/shelf.dart' show Request;
-import 'package:shelf/shelf_io.dart' as shelf_io;
-
+/// Provides implementation for protobuf InputMethodsServiceBase methods
 class InputMethodsService extends InputMethodsServiceBase {
   @override
   Future<pb.Response> pressKey(ServiceCall call, pb.Key request) async {
     return pb.Response()..message = 'Ok';
   }
+
+  @override
+  Future<pb.Response> moveMouse(ServiceCall call, pb.MouseMove request) {
+    // TODO: implement moveMouse
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<pb.Response> pressMouseKey(ServiceCall call, pb.MouseKey request) {
+    // TODO: implement pressMouseKey
+    throw UnimplementedError();
+  }
 }
 
-class InputServerPb {
+/// Serves protobuf InputMethodsService over gRPC
+/// Wraps the server with additional starting, stopping and logging functionality
+class InputServerController {
   Server? _server;
   int _port;
   ServerStatus _status = ServerStatus.offline;
   final Logger _logger;
   late InternetAddress _address;
 
-  InputServerPb(this._port, this._logger, {InternetAddress? address}) {
+  InputServerController(this._port, this._logger, {InternetAddress? address}) {
     _address = address ?? InternetAddress.loopbackIPv4;
   }
 
@@ -42,16 +54,12 @@ class InputServerPb {
   }
 
   Future<void> listen() async {
-    //var handler = const Pipeline()
-    //    .addMiddleware(logRequestsMiddleware(_logger))
-    //    .addHandler(_echoRequest);
     _server = Server(
       [InputMethodsService()],
-      <Interceptor>[middleware(_logger)],
+      <Interceptor>[buildLoggingMiddleware(_logger)],
       CodecRegistry(codecs: const [GzipCodec()]),
     );
 
-    // _server = await shelf_io.serve(handler, _address, _port);
     await _server?.serve(port: _port);
 
     _status = ServerStatus.online;
@@ -66,7 +74,8 @@ class InputServerPb {
   }
 }
 
-Interceptor middleware(Logger logger) {
+/// Builds and return a middleware for logging gRPC requests
+Interceptor buildLoggingMiddleware(Logger logger) {
   return (ServiceCall call, ServiceMethod method) {
     var msg = 'Called ${method.name}';
 

@@ -19,7 +19,9 @@ class ServerPage extends StatefulWidget {
 class _ServerPageState extends State<ServerPage> {
   final TextEditingController _portController = TextEditingController(text: "$_defaultPort");
   late Logger _logger;
-  late InputServerPb _server;
+
+  // gRPC server
+  late InputServerController _server;
 
   get isServerSarted => _serverSatus == ServerStatus.online;
   String get serverIp => "127.0.0.1:${_portController.text}";
@@ -27,7 +29,7 @@ class _ServerPageState extends State<ServerPage> {
 
   _ServerPageState() {
     _logger = Logger.instance();
-    _server = InputServerPb(_defaultPort, _logger);
+    _server = InputServerController(_defaultPort, _logger);
   }
 
   @override
@@ -208,8 +210,7 @@ class TextButtonInput extends StatelessWidget {
       children: [
         SizedBox(
           width: 150,
-          child: Expanded(
-            child: TextFormBox(
+          child: TextFormBox(
               header: header,
               placeholder: placeholder,
               controller: controller,
@@ -227,7 +228,6 @@ class TextButtonInput extends StatelessWidget {
                   : null,
             ),
           ),
-        ),
         const Gap(8),
         Padding(
           padding: const EdgeInsets.only(top: 2),

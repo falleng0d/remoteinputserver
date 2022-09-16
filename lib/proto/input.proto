@@ -2,10 +2,35 @@ syntax = "proto3";
 
 service InputMethods {
     rpc PressKey(Key) returns (Response);
+    rpc PressMouseKey(MouseKey) returns (Response);
+    rpc MoveMouse(MouseMove) returns (Response);
 }
 
 message Key {
     int32 id = 1;
+    enum KeyActionType {
+        UP = 0;
+        DOWN = 1;
+        PRESS = 3;
+    }
+    KeyActionType type = 2;
+}
+
+message MouseKey {
+    int32 id = 1;
+    enum KeyActionType {
+        UP = 0;
+        DOWN = 1;
+        PRESS = 3;
+    }
+
+    KeyActionType type = 2;
+}
+
+message MouseMove {
+    float x = 1;
+    float y = 2;
+    bool relative = 3;
 }
 
 message Response {
