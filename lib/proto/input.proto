@@ -1,11 +1,13 @@
 syntax = "proto3";
 
+// InputMethods service
 service InputMethods {
     rpc PressKey(Key) returns (Response);
     rpc PressMouseKey(MouseKey) returns (Response);
     rpc MoveMouse(MouseMove) returns (Response);
 }
 
+// The key message containing a key code and a state
 message Key {
     int32 id = 1;
     enum KeyActionType {
