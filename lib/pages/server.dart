@@ -1,10 +1,10 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
+import 'package:remotecontrol_lib/logger.dart';
 
 import '../components/log_box.dart';
 import '../components/server_status.dart';
-import '../logger.dart';
 import '../server_pb.dart';
 
 const _defaultPort = 9035;

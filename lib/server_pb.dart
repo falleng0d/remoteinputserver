@@ -1,6 +1,6 @@
 import 'package:grpc/grpc.dart';
 import 'package:remotecontrol/components/server_status.dart';
-import 'package:remotecontrol/logger.dart';
+import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol/proto/input.pb.dart' as pb;
 import 'package:remotecontrol/proto/input.pbgrpc.dart' as pb;
 import 'package:remotecontrol/proto/input.pbgrpc.dart';

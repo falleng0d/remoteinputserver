@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:remotecontrol/logger.dart';
+import 'package:remotecontrol_lib/logger.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'package:shelf/shelf.dart';

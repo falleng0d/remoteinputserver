@@ -1,6 +1,5 @@
 import 'package:fluent_ui/fluent_ui.dart';
-
-import '../logger.dart';
+import 'package:remotecontrol_lib/logger.dart';
 
 class LogBox extends StatefulWidget {
   const LogBox({Key? key}) : super(key: key);

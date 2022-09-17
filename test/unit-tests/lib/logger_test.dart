@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:remotecontrol/logger.dart';
 import 'package:intl/intl.dart';
+import 'package:remotecontrol_lib/logger.dart';
 
 void main() {
   test('Logger should invoke subscribed callbacks', () {

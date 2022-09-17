@@ -8,7 +8,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart' as flutter_acrylic;
 
-import 'logger.dart';
+import 'package:remotecontrol_lib/logger.dart';
 import 'theme.dart';
 
 const String appTitle = 'Remote Input Server';

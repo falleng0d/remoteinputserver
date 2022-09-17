@@ -1,5 +1,5 @@
 import 'package:remotecontrol/components/server_status.dart';
-import 'package:remotecontrol/logger.dart';
+import 'package:remotecontrol_lib/logger.dart';
 import 'dart:io';
 
 import 'package:shelf/shelf.dart';
