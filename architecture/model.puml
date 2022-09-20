@@ -1,0 +1,108 @@
+
+
+@startuml
+'This is a comment
+'https://plantuml.com/class-diagram
+
+title Class Diagram Sample
+
+'Interfaces & abstract classes
+abstract class AbstractList
+abstract AbstractCollection
+interface List
+interface Collection
+
+'Enums
+enum TimeUnit {
+  DAYS
+  HOURS
+  MINUTES
+}
+
+'Classes
+class ArrayList {
+  Object[] elementData
+  size()
+}
+
+'Relationships
+List <|-- AbstractList
+Collection <|-- AbstractCollection
+
+Collection <|- List
+AbstractCollection <|- AbstractList
+AbstractList <|-- ArrayList
+
+package "Classic Collections" #DDDDDD {
+  Object <|-- ArrayList
+}
+
+'Decorators/Anotations
+annotation SuppressWarnings
+
+annotation Annotation {
+  annotation with members
+  String foo()
+  String bar()
+}
+
+@enduml
+
+@startuml
+
+title Class Diagram for the remotecontrol package
+
+'Interfaces & abstract classes
+abstract class Element
+abstract class Action
+
+'Enums
+enum KeyPressType {
+	KeyUp
+	KeyDown
+}
+enum ActionTypes {
+	TYPE1
+	TYPE2
+	TYPE3
+}
+enum KeyCodes {
+	ENTER
+	ESC
+	...
+}
+
+'Classes
+class KeyboardLayout {
+
+}
+
+class Layout {
+
+}
+
+class Position {
+
+}
+
+class TapKeyAction {}
+
+class PressKeyAction {
+	keyPressType: KeyPressType
+}
+
+class KeySequenceAction {
+	keySequence: KeyCodes[]
+}
+
+class Key {
+	action: Action
+}
+
+'Relationships
+TapKeyAction <|-- Action
+Key *-- Action
+
+
+
+@enduml
