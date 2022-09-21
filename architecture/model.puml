@@ -50,11 +50,19 @@ annotation Annotation {
 
 @startuml
 
-title Class Diagram for the remotecontrol package
-
-'Interfaces & abstract classes
-abstract class Element
-abstract class Action
+title Remotecontrol Keyboard Builder Model
+'The aim of this model is make it possible build a serializable keyboard layout
+'The keyboad layout is a tree of keys and layout elements
+'Some key types are:
+' - KeyboardKey: a key that sends a keyboard key key code
+' - MouseKey: a key that sends a mouse key key code
+' - MouseMoveKey: a key that sends a mouse move key code and move delta
+' - KeySequence: a key composed of other keys
+'Some layout elements are:
+' - HorizontalSpacer
+' - VerticalSpacer
+' -
+'Serializable hierarchical
 
 'Enums
 enum KeyPressType {
@@ -66,43 +74,111 @@ enum ActionTypes {
 	TYPE2
 	TYPE3
 }
-enum KeyCodes {
+enum KeyCode  {
 	ENTER
 	ESC
 	...
 }
 
-'Classes
-class KeyboardLayout {
+package rendering {
+	abstract class Size {}
+	abstract class Layout {
+		size Size
+	}
 
+	class Display {
+		elements Element[]
+	}
+
+	class FlexibleLayout {}
+
+	'Relationships
+	Layout <|-- FlexibleLayout
+	Layout *-- Size
 }
 
-class Layout {
+package actions {
+	'action is the base class for all actions
+	abstract class Action {
+		+execute()
+	}
 
+	class TapKeyAction {}
+
+	class PressKeyAction {
+		keyPressType KeyPressType
+	}
+
+	class KeySequenceAction {
+		keySequence KeyCode[]
+	}
+
+  Action <|-- TapKeyAction
+  Action <|-- PressKeyAction
+  Action <|-- KeySequenceAction
 }
 
-class Position {
-
+package keybd {
+	class Key {
+		keyCode KeyCode
+	}
 }
 
-class TapKeyAction {}
+'element is a displayable control that can be added to a container
+abstract class InteractiveElement {
+	layout Layout
+	action Action
 
-class PressKeyAction {
-	keyPressType: KeyPressType
-}
-
-class KeySequenceAction {
-	keySequence: KeyCodes[]
-}
-
-class Key {
-	action: Action
+	build()
 }
 
 'Relationships
-TapKeyAction <|-- Action
-Key *-- Action
+Action --* InteractiveElement
+
+Layout --* InteractiveElement
 
 
+
+@enduml
+
+@startuml
+title Alternative model for actions
+
+package actions {
+	'action is the base class for all actions
+	abstract class Command {}
+
+	abstract class Action {
+		actions Action[]
+		+getCommands() : Command[]
+	}
+	note right of Action::getCommands
+		Each action can have multiple commands
+		associated with it.
+	end note
+
+	class CompositeAction {
+		actions Action[]
+	}
+
+	class TapKeyAction {
+		keyCode KeyCode
+	}
+
+	class PressKeyAction {
+		keyPressType KeyPressType
+	}
+
+	class KeySequenceAction {
+		keySequence KeyCode[]
+	}
+
+  Action <|-- TapKeyAction
+  Action <|-- PressKeyAction
+  Action <|-- KeySequenceAction
+  Action <|-- CompositeAction
+  Command --* Action
+  Action --* CompositeAction
+}
 
 @enduml
