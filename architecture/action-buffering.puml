@@ -1,0 +1,24 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+Alice -> Bob: Authentication Request
+Bob --> Alice: Authentication Response
+
+Alice -> Bob: Another authentication Request
+Alice <-- Bob: another authentication Response
+
+@enduml
+
+
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+User -> KeyWidget: Press key
+KeyWidget -> ExecQueue: Schedule cmd execution
+ExecQueue -> Action: Call action cmd with given ctx
+
+@enduml

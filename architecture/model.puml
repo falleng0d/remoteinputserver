@@ -1,53 +1,3 @@
-
-
-@startuml
-'This is a comment
-'https://plantuml.com/class-diagram
-
-title Class Diagram Sample
-
-'Interfaces & abstract classes
-abstract class AbstractList
-abstract AbstractCollection
-interface List
-interface Collection
-
-'Enums
-enum TimeUnit {
-  DAYS
-  HOURS
-  MINUTES
-}
-
-'Classes
-class ArrayList {
-  Object[] elementData
-  size()
-}
-
-'Relationships
-List <|-- AbstractList
-Collection <|-- AbstractCollection
-
-Collection <|- List
-AbstractCollection <|- AbstractList
-AbstractList <|-- ArrayList
-
-package "Classic Collections" #DDDDDD {
-  Object <|-- ArrayList
-}
-
-'Decorators/Anotations
-annotation SuppressWarnings
-
-annotation Annotation {
-  annotation with members
-  String foo()
-  String bar()
-}
-
-@enduml
-
 @startuml
 
 title Remotecontrol Keyboard Builder Model
@@ -67,6 +17,7 @@ title Remotecontrol Keyboard Builder Model
 package rendering {
 	abstract class Geometry {}
 	'element is a displayable control that can be added to a container
+	'it should be possible to build a element into a renderable widget
   abstract class Element {
   	+geometry Geometry
   	+label string
@@ -76,6 +27,8 @@ package rendering {
 	abstract class Layout {
 		geometry Geometry
 		children: Element[]
+
+		+build()
 	}
 
 	class FlexibleGeometry {
@@ -93,8 +46,12 @@ package rendering {
     +rowGap: float
 	}
 
-	class HorizontalSpacer {}
-	class VerticalSpacer {}
+	class HorizontalSpacer {
+		+build()
+	}
+	class VerticalSpacer {
+		+build()
+	}
 
 	'Relationships
 	Element <|-- Layout
@@ -111,7 +68,7 @@ package actions {
 	abstract class Command {}
 
 	abstract class Action {
-		+getCommands() : Command[]
+		+doAction(ctx: ActionContext): bool
 	}
 	note right of Action::getCommands
 		Each action can have multiple commands
@@ -139,6 +96,11 @@ package actions {
 		keyCode MbKeyCode
 	}
 
+	class MouseMoveAction {
+		deltaX float
+		deltaY float
+	}
+
 	class TypeTextAction {
   	text string
   }
@@ -157,14 +119,15 @@ package actions {
   Action <|-- KeyAction
   KeyAction <|-- KeyboardKeyAction
   KeyAction <|-- MouseButtonAction
-	KeyState *- KeyAction
+	KeyState *-- KeyAction
+	Action <|-- MouseMoveAction
 }
 
 package interactive {
 	class Button {
 		+geometry: FlexibleGeometry
 		+label: string
-		+keyRepeat: float
+		+keyRep eat: float
 	  +keyRepeatDelay: float
 	  +toggle: bool
 	  -action Action
@@ -190,6 +153,41 @@ package interactive {
 	Action --* Button::action
 	Element <|-- Button
 	Element <|-- Touchpad
+}
+
+package fltter_widgets {
+	class ButtonWidget {
+		button Button
+
+		-onClick()
+		+build()
+	}
+
+	Button <|-- ButtonWidget
+}
+
+package scheduler {
+	struct ActionContext {
+		controller InputServerController
+	}
+
+	class KbdController {
+		keyboardRootNode Element
+		controller InputServerController
+		queue ActionQueue
+
+		+doAction(widget, action)
+	}
+
+	class ActionQueue {
+		controller InputServerController
+
+		+scheduleAction(ctx, action, timeout)
+	}
+
+	KbdController *-- ActionQueue
+	KbdController::doAction <-- ButtonWidget::onClick
+	KbdController::doAction --> ActionQueue::scheduleAction
 }
 
 @enduml
