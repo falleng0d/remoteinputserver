@@ -64,92 +64,53 @@ title Remotecontrol Keyboard Builder Model
 ' -
 'Serializable hierarchical
 
-'Enums
-enum KeyPressType {
-	KeyUp
-	KeyDown
-}
-enum ActionTypes {
-	TYPE1
-	TYPE2
-	TYPE3
-}
-enum KeyCode  {
-	ENTER
-	ESC
-	...
-}
-
 package rendering {
-	abstract class Size {}
+	abstract class Geometry {}
+	'element is a displayable control that can be added to a container
+  abstract class Element {
+  	+geometry Geometry
+  	+label string
+
+  	+build()
+  }
 	abstract class Layout {
-		size Size
+		geometry Geometry
+		children: Element[]
 	}
 
-	class Display {
-		elements Element[]
+	class FlexibleGeometry {
+		maxWidth: float?
+    maxHeight: float?
+    expand: bool?
+    padding: Padding?
 	}
 
-	class FlexibleLayout {}
+	class FlexLayout {
+		+geometry: FlexibleGeometry
+		+description: string
+    +direction: "row" | "column"
+    +columnGap: float
+    +rowGap: float
+	}
+
+	class HorizontalSpacer {}
+	class VerticalSpacer {}
 
 	'Relationships
-	Layout <|-- FlexibleLayout
-	Layout *-- Size
+	Element <|-- Layout
+	Layout <|-- FlexLayout
+	Layout *- Geometry : "1..*"
+	Geometry <|-- FlexibleGeometry
+	FlexLayout *- FlexibleGeometry : "1..*"
+	Element <|-- HorizontalSpacer
+	Element <|-- VerticalSpacer
 }
-
-package actions {
-	'action is the base class for all actions
-	abstract class Action {
-		+execute()
-	}
-
-	class TapKeyAction {}
-
-	class PressKeyAction {
-		keyPressType KeyPressType
-	}
-
-	class KeySequenceAction {
-		keySequence KeyCode[]
-	}
-
-  Action <|-- TapKeyAction
-  Action <|-- PressKeyAction
-  Action <|-- KeySequenceAction
-}
-
-package keybd {
-	class Key {
-		keyCode KeyCode
-	}
-}
-
-'element is a displayable control that can be added to a container
-abstract class InteractiveElement {
-	layout Layout
-	action Action
-
-	build()
-}
-
-'Relationships
-Action --* InteractiveElement
-
-Layout --* InteractiveElement
-
-
-
-@enduml
-
-@startuml
-title Alternative model for actions
 
 package actions {
 	'action is the base class for all actions
 	abstract class Command {}
 
 	abstract class Action {
-		actions Action[]
 		+getCommands() : Command[]
 	}
 	note right of Action::getCommands
@@ -157,28 +118,78 @@ package actions {
 		associated with it.
 	end note
 
-	class CompositeAction {
+	class SequenceAction {
 		actions Action[]
 	}
 
-	class TapKeyAction {
-		keyCode KeyCode
+	enum KeyState {
+		Up
+		Down
 	}
 
-	class PressKeyAction {
-		keyPressType KeyPressType
+	abstract class KeyAction {
+		state KeyState
 	}
 
-	class KeySequenceAction {
-		keySequence KeyCode[]
+	class KeyboardKeyAction {
+		keyCode KbdKeyCode
 	}
 
-  Action <|-- TapKeyAction
-  Action <|-- PressKeyAction
-  Action <|-- KeySequenceAction
-  Action <|-- CompositeAction
-  Command --* Action
-  Action --* CompositeAction
+	class MouseButtonAction {
+		keyCode MbKeyCode
+	}
+
+	class TypeTextAction {
+  	text string
+  }
+
+  class ShowMenuAction {
+    hideOnRelease: bool
+    pressOnRelease: bool
+    actions: Action[]
+  }
+
+  Action <|-- TypeTextAction
+  Action <|-- SequenceAction
+  Action <|-- ShowMenuAction
+  Command -* Action
+  Action --* SequenceAction
+  Action <|-- KeyAction
+  KeyAction <|-- KeyboardKeyAction
+  KeyAction <|-- MouseButtonAction
+	KeyState *- KeyAction
+}
+
+package interactive {
+	class Button {
+		+geometry: FlexibleGeometry
+		+label: string
+		+keyRepeat: float
+	  +keyRepeatDelay: float
+	  +toggle: bool
+	  -action Action
+		+holdTimeThreshold: float
+	  -holdAction Action?
+	  +doubleTapThershold: float
+	  -doubleTapAction Action?
+
+		+build()
+	}
+	class Touchpad {
+		+sensitivity int?
+		+scrollbar bool
+		+mouseButtons bool
+		+tapToClick bool
+		+doubleTapAndHold bool
+
+		+build()
+	}
+
+
+	'Relationships
+	Action --* Button::action
+	Element <|-- Button
+	Element <|-- Touchpad
 }
 
 @enduml
