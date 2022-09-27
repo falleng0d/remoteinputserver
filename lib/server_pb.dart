@@ -1,13 +1,11 @@
 import 'package:grpc/grpc.dart';
 import 'package:remotecontrol/components/server_status.dart';
 import 'package:remotecontrol_lib/logger.dart';
-import 'package:remotecontrol/proto/input.pb.dart' as pb;
-import 'package:remotecontrol/proto/input.pbgrpc.dart' as pb;
-import 'package:remotecontrol/proto/input.pbgrpc.dart';
+import 'package:remotecontrol_lib/proto/input.pbgrpc.dart' as pb;
 import 'dart:io';
 
 /// Provides implementation for protobuf InputMethodsServiceBase methods
-class InputMethodsService extends InputMethodsServiceBase {
+class InputMethodsService extends pb.InputMethodsServiceBase {
   @override
   Future<pb.Response> pressKey(ServiceCall call, pb.Key request) async {
     return pb.Response()..message = 'Ok';
