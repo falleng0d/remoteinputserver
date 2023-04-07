@@ -6,20 +6,27 @@ import 'dart:io';
 
 /// Provides implementation for protobuf InputMethodsServiceBase methods
 class InputMethodsService extends pb.InputMethodsServiceBase {
+  final Logger _logger;
+
+  InputMethodsService(this._logger);
+
   @override
   Future<pb.Response> pressKey(ServiceCall call, pb.Key request) async {
+    _logger.info('Key pressed: ${request.id}');
     return pb.Response()..message = 'Ok';
   }
 
   @override
   Future<pb.Response> moveMouse(ServiceCall call, pb.MouseMove request) {
     // TODO: implement moveMouse
+    _logger.info('Mouse moved: ${request.x}, ${request.y}');
     throw UnimplementedError();
   }
 
   @override
   Future<pb.Response> pressMouseKey(ServiceCall call, pb.MouseKey request) {
     // TODO: implement pressMouseKey
+    _logger.info('Mouse key pressed: ${request.id}');
     throw UnimplementedError();
   }
 }
@@ -53,7 +60,7 @@ class InputServerController {
 
   Future<void> listen() async {
     _server = Server(
-      [InputMethodsService()],
+      [InputMethodsService(_logger)],
       <Interceptor>[buildLoggingMiddleware(_logger)],
       CodecRegistry(codecs: const [GzipCodec()]),
     );
