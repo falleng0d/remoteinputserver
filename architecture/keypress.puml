@@ -1,0 +1,11 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+User --> TopWidget : Presses key
+TopWidget --> RBAction : Propagate key press
+RBAction --> InputServer : Handle key press
+
+
+@enduml
