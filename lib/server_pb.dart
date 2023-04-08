@@ -17,17 +17,23 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
   }
 
   @override
-  Future<pb.Response> moveMouse(ServiceCall call, pb.MouseMove request) {
+  Future<pb.Response> moveMouse(ServiceCall call, pb.MouseMove request) async {
     // TODO: implement moveMouse
     _logger.info('Mouse moved: ${request.x}, ${request.y}');
     throw UnimplementedError();
   }
 
   @override
-  Future<pb.Response> pressMouseKey(ServiceCall call, pb.MouseKey request) {
+  Future<pb.Response> pressMouseKey(ServiceCall call, pb.MouseKey request) async {
     // TODO: implement pressMouseKey
     _logger.info('Mouse key pressed: ${request.id}');
     throw UnimplementedError();
+  }
+
+  @override
+  Future<pb.Response> ping(ServiceCall call, pb.Empty request) async {
+    _logger.info('Ping received from client');
+    return pb.Response()..message = 'Ok';
   }
 }
 
