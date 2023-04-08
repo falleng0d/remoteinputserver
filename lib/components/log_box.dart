@@ -19,7 +19,7 @@ class _LogBoxState extends State<LogBox> {
       _logController.text = '${_logController.text}$message\n';
 
       if (isScrollToEnd && _scrollController.hasClients) {
-        Future.delayed(const Duration(milliseconds: 10), (){
+        Future.delayed(const Duration(milliseconds: 10), () {
           _scrollToEnd();
         });
       }
@@ -77,6 +77,7 @@ class _LogBoxState extends State<LogBox> {
           controller: _logController,
           suffixMode: OverlayVisibilityMode.always,
           placeholder: 'Events will display here',
+          textAlignVertical: TextAlignVertical.top,
           readOnly: true,
         ),
         _logController.text.isEmpty ? Container() : buildClearButton(),
@@ -108,7 +109,7 @@ class _LogBoxState extends State<LogBox> {
             style: ButtonStyle(
               backgroundColor: ButtonState.resolveWith((states) {
                 return states.isDisabled
-                    ? ButtonThemeData.buttonColor(theme.brightness, states)
+                    ? ButtonThemeData.buttonColor(context, states)
                     : uncheckedInputColor(theme, states);
               }),
             ),
