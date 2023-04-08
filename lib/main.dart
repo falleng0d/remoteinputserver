@@ -1,14 +1,14 @@
 // ignore_for_file: avoid_print
-import 'package:flutter/foundation.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_acrylic/flutter_acrylic.dart' as flutter_acrylic;
+import 'package:provider/provider.dart';
 import 'package:remotecontrol/pages/server.dart';
+import 'package:remotecontrol_lib/logger.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_acrylic/flutter_acrylic.dart' as flutter_acrylic;
 
-import 'package:remotecontrol_lib/logger.dart';
 import 'theme.dart';
 
 const String appTitle = 'Remote Input Server';
@@ -65,10 +65,10 @@ class MyApp extends StatelessWidget {
           title: appTitle,
           themeMode: appTheme.mode,
           debugShowCheckedModeBanner: false,
+          color: appTheme.color,
           initialRoute: '/',
           routes: {'/': (_) => const MyHomePage(title: appTitle)},
-          color: appTheme.color,
-          darkTheme: ThemeData(
+          darkTheme: FluentThemeData(
             brightness: Brightness.dark,
             accentColor: appTheme.color,
             visualDensity: VisualDensity.standard,
@@ -76,7 +76,7 @@ class MyApp extends StatelessWidget {
               glowFactor: is10footScreen() ? 2.0 : 0.0,
             ),
           ),
-          theme: ThemeData(
+          theme: FluentThemeData(
             accentColor: appTheme.color,
             visualDensity: VisualDensity.standard,
             focusTheme: FocusThemeData(
@@ -234,11 +234,17 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
           PaneItem(
             icon: const Icon(FluentIcons.analytics_view),
             title: const Text('Server'),
+            body: const ServerPage(),
           ),
         ],
         autoSuggestBox: AutoSuggestBox(
           controller: TextEditingController(),
-          items: const ['Server'],
+          items: [
+            AutoSuggestBoxItem(
+              label: 'server',
+              value: 'Server',
+            ),
+          ],
         ),
         autoSuggestBoxReplacement: const Icon(FluentIcons.search),
         footerItems: [
@@ -246,21 +252,20 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
           PaneItem(
             icon: const Icon(FluentIcons.settings),
             title: const Text('Settings'),
+            body: const Text('Settings Page'),
           ),
         ],
       ),
-      content: NavigationBody(index: index, children: const [
-        ServerPage(),
-        //Settings(controller: settingsController),
-      ]),
     );
   }
 
   @override
   void onWindowClose() async {
     bool isPreventClose = await windowManager.isPreventClose();
+    if (!context.mounted) return;
+
     if (isPreventClose) {
-      showDialog(
+      await showDialog(
         context: context,
         builder: (_) {
           return ContentDialog(
