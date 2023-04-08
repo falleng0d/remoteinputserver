@@ -17,7 +17,8 @@ class ServerPage extends StatefulWidget {
 }
 
 class _ServerPageState extends State<ServerPage> {
-  final TextEditingController _portController = TextEditingController(text: "$_defaultPort");
+  final TextEditingController _portController =
+      TextEditingController(text: "$_defaultPort");
   late Logger _logger;
 
   // gRPC server
@@ -38,18 +39,36 @@ class _ServerPageState extends State<ServerPage> {
     final padding = PageHeader.horizontalPadding(context);
 
     return ScaffoldPage(
-        header: PageHeader(
-          title: const Text('Remote Input Server'),
-          commandBar: SizedBox(
-            width: 240.0,
-            child: ServerStatusText(_serverSatus),
+        header: Padding(
+          padding: EdgeInsets.only(right: padding),
+          child: Row(
+            children: [
+              Expanded(
+                child: PageHeader(
+                  title: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 50),
+                      child: const Text('Remote Input Server')),
+                ),
+              ),
+              ServerStatusText(_serverSatus)
+            ],
           ),
         ),
-        bottomBar: const InfoBar(
-          title: Text('Tip:'),
-          content: Text(
-            'You can click on any icon to execute the action.',
-          ),
+        bottomBar: Row(
+          children: [
+            InfoBar(
+              title: const Text('Tip:'),
+              content: const Text(
+                'You can click on any icon to execute the action.',
+              ),
+              style: InfoBarThemeData(
+                padding: EdgeInsets.fromLTRB(padding, 0, 0, 0),
+                decoration: (_) => const BoxDecoration(
+                  border: null,
+                ),
+              ),
+            ),
+          ],
         ),
         content: Container(
           constraints: const BoxConstraints.expand(),
@@ -106,13 +125,15 @@ class _ServerPageState extends State<ServerPage> {
                           children: [
                             Text(
                               "Server Ip: $serverIp",
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             IconButton(
                               icon: const Icon(FluentIcons.copy),
                               onPressed: () {
-                                Clipboard.setData(ClipboardData(text: serverIp)).
-                                then((_) => _logger.trace("Copied server ip to clipboard"));
+                                Clipboard.setData(ClipboardData(text: serverIp))
+                                    .then((_) => _logger.trace(
+                                        "Copied server ip to clipboard"));
                               },
                             ),
                           ],
@@ -210,8 +231,9 @@ class TextButtonInput extends StatelessWidget {
       children: [
         SizedBox(
           width: 150,
-          child: TextFormBox(
-              header: header,
+          child: InfoLabel(
+            label: header,
+            child: TextFormBox(
               placeholder: placeholder,
               controller: controller,
               autovalidateMode: AutovalidateMode.always,
@@ -228,12 +250,13 @@ class TextButtonInput extends StatelessWidget {
                   : null,
             ),
           ),
+        ),
         const Gap(8),
         Padding(
-          padding: const EdgeInsets.only(top: 2),
+          padding: const EdgeInsets.only(top: 28),
           child: SizedBox(
-            width: 120,
-            height: 31,
+            width: 130,
+            height: 32,
             child: FilledButton(
               onPressed: enabled ? onPressed : null,
               child: buttonIcon != null
