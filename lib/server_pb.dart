@@ -1,8 +1,9 @@
+import 'dart:io';
+
 import 'package:grpc/grpc.dart';
 import 'package:remotecontrol/components/server_status.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/proto/input.pbgrpc.dart' as pb;
-import 'dart:io';
 
 /// Provides implementation for protobuf InputMethodsServiceBase methods
 class InputMethodsService extends pb.InputMethodsServiceBase {
@@ -12,27 +13,27 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
 
   @override
   Future<pb.Response> pressKey(ServiceCall call, pb.Key request) async {
-    _logger.info('Key pressed: ${request.id}');
+    _logger.trace('Key pressed: ${request.id}');
     return pb.Response()..message = 'Ok';
   }
 
   @override
   Future<pb.Response> moveMouse(ServiceCall call, pb.MouseMove request) async {
     // TODO: implement moveMouse
-    _logger.info('Mouse moved: ${request.x}, ${request.y}');
+    _logger.trace('Mouse moved: ${request.x}, ${request.y}');
     throw UnimplementedError();
   }
 
   @override
-  Future<pb.Response> pressMouseKey(ServiceCall call, pb.MouseKey request) async {
+  Future<pb.Response> pressMouseKey(
+      ServiceCall call, pb.MouseKey request) async {
     // TODO: implement pressMouseKey
-    _logger.info('Mouse key pressed: ${request.id}');
+    _logger.trace('Mouse key pressed: ${request.id}');
     throw UnimplementedError();
   }
 
   @override
   Future<pb.Response> ping(ServiceCall call, pb.Empty request) async {
-    _logger.info('Ping received from client');
     return pb.Response()..message = 'Ok';
   }
 }
@@ -88,10 +89,8 @@ class InputServerController {
 /// Builds and return a middleware for logging gRPC requests
 Interceptor buildLoggingMiddleware(Logger logger) {
   return (ServiceCall call, ServiceMethod method) {
-    var msg = 'Called ${method.name}';
-
-    logger.debug(msg);
+    // var msg = 'Called ${method.name}';
+    // logger.trace(msg);
     return null;
   };
 }
-
