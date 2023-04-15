@@ -5,11 +5,14 @@ import 'package:remotecontrol/components/server_status.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/proto/input.pbgrpc.dart' as pb;
 
+import 'input.dart';
+
 /// Provides implementation for protobuf InputMethodsServiceBase methods
 class InputMethodsService extends pb.InputMethodsServiceBase {
   final Logger _logger;
+  final Win32InputService systemInputService;
 
-  InputMethodsService(this._logger);
+  InputMethodsService(this._logger, this.systemInputService);
 
   @override
   Future<pb.Response> pressKey(ServiceCall call, pb.Key request) async {
@@ -20,7 +23,8 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
   @override
   Future<pb.Response> moveMouse(ServiceCall call, pb.MouseMove request) async {
     // TODO: implement moveMouse
-    _logger.trace('Mouse moved: ${request.x}, ${request.y}');
+    // _logger.trace('Mouse moved: ${request.x}, ${request.y}');
+    systemInputService.moveMouseRelative(request.x, request.y);
     throw UnimplementedError();
   }
 
@@ -67,7 +71,7 @@ class InputServerController {
 
   Future<void> listen() async {
     _server = Server(
-      [InputMethodsService(_logger)],
+      [InputMethodsService(_logger, Win32InputService())],
       <Interceptor>[buildLoggingMiddleware(_logger)],
       CodecRegistry(codecs: const [GzipCodec()]),
     );
