@@ -24,8 +24,8 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
   Future<pb.Response> moveMouse(ServiceCall call, pb.MouseMove request) async {
     // TODO: implement moveMouse
     // _logger.trace('Mouse moved: ${request.x}, ${request.y}');
-    systemInputService.moveMouseRelative(request.x, request.y);
-    throw UnimplementedError();
+    systemInputService.moveMouseRelative(request.x, request.y, speed: .5);
+    return pb.Response()..message = 'Ok';
   }
 
   @override

@@ -9,6 +9,7 @@ const VK_A = 0x41;
 class SystemKey {
   final int keyDown;
   final int keyUp;
+
   const SystemKey(this.keyDown, this.keyUp);
 }
 
@@ -159,16 +160,17 @@ class Win32InputService {
     return result;
   }
 
-  Future<int> moveMouseRelative(double deltaX, double deltaY) async {
+  Future<int> moveMouseRelative(double deltaX, double deltaY,
+      {double speed = 1.0}) async {
     final mouse = calloc<INPUT>();
     mouse.ref.type = INPUT_MOUSE;
     mouse.ref.mi.dwFlags = MOUSEEVENTF_MOVE;
     mouse.ref.mi.dx =
-        (deltaX * (65535.0 / GetSystemMetrics(SM_CXSCREEN))).toInt();
+        (deltaX * speed * (65535.0 / GetSystemMetrics(SM_CXSCREEN))).toInt();
     mouse.ref.mi.dy =
-        (deltaY * (65535.0 / GetSystemMetrics(SM_CYSCREEN))).toInt();
+        (deltaY * speed * (65535.0 / GetSystemMetrics(SM_CYSCREEN))).toInt();
 
-    var result = SendInput(1, mouse, sizeOf<INPUT>());
+    final result = SendInput(1, mouse, sizeOf<INPUT>());
     if (result != TRUE) {
       if (kDebugMode) {
         print('Error: ${GetLastError()}');
