@@ -1,48 +1,13 @@
 import 'dart:ffi';
+import 'dart:math';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
+import 'package:remotecontrol_lib/input/virtualkeys.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:win32/win32.dart';
 
 const VK_A = 0x41;
-
-class SystemKey {
-  final int keyDown;
-  final int keyUp;
-
-  const SystemKey(this.keyDown, this.keyUp);
-}
-
-const SK_MOUSE_LEFT = SystemKey(MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP);
-const SK_MOUSE_RIGHT = SystemKey(MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP);
-const SK_MOUSE_MIDDLE = SystemKey(MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP);
-
-class MouseKeys {
-  static const left = SK_MOUSE_LEFT;
-  static const right = SK_MOUSE_RIGHT;
-  static const middle = SK_MOUSE_MIDDLE;
-}
-
-enum ActionType { UP, DOWN, PRESS }
-
-enum MouseActionType { UP, DOWN, MOVE, PRESS }
-
-enum KeyState { UP, DOWN }
-
-class KBAction {
-  final ActionType type;
-  final int value;
-
-  const KBAction(this.type, {this.value = 1});
-}
-
-class MBAction {
-  final ActionType type;
-  final double x;
-  final double y;
-
-  const MBAction(this.type, {this.x = 0, this.y = 0});
-}
 
 Future<int> mouseClick(SystemKey key, {int interval = 50}) async {
   final mouse = calloc<INPUT>();
@@ -161,14 +126,22 @@ class Win32InputService {
   }
 
   Future<int> moveMouseRelative(double deltaX, double deltaY,
-      {double speed = 1.0}) async {
+      {double speed = 1.0, double acceleration = 1.0}) async {
+    double adjustedDeltaX =
+        deltaX * speed * (65535.0 / GetSystemMetrics(SM_CXSCREEN));
+    double adjustedDeltaY =
+        deltaY * speed * (65535.0 / GetSystemMetrics(SM_CYSCREEN));
+
+    adjustedDeltaX =
+        adjustedDeltaX.sign * pow(adjustedDeltaX.abs(), acceleration);
+    adjustedDeltaY =
+        adjustedDeltaY.sign * pow(adjustedDeltaY.abs(), acceleration);
+
     final mouse = calloc<INPUT>();
     mouse.ref.type = INPUT_MOUSE;
     mouse.ref.mi.dwFlags = MOUSEEVENTF_MOVE;
-    mouse.ref.mi.dx =
-        (deltaX * speed * (65535.0 / GetSystemMetrics(SM_CXSCREEN))).toInt();
-    mouse.ref.mi.dy =
-        (deltaY * speed * (65535.0 / GetSystemMetrics(SM_CYSCREEN))).toInt();
+    mouse.ref.mi.dx = adjustedDeltaX.toInt();
+    mouse.ref.mi.dy = adjustedDeltaY.toInt();
 
     final result = SendInput(1, mouse, sizeOf<INPUT>());
     if (result != TRUE) {
@@ -219,5 +192,65 @@ class Win32InputService {
 
     free(mouse);
     return result;
+  }
+}
+
+class InputConfig {
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  bool _initialized = false;
+
+  double _cursorSpeed = 1.0;
+  double _cursorAcceleration = 1.0;
+  int _keyPressInterval = 50;
+
+  get cursorSpeed => _cursorSpeed;
+  get cursorAcceleration => _cursorAcceleration;
+  get keyPressInterval => _keyPressInterval;
+
+  InputConfig();
+
+  /// Loads the configuration from the shared preferences.
+  /// Must be called before using the configuration.
+  Future<InputConfig> load() async {
+    final prefs = await _prefs;
+    _cursorSpeed = prefs.getDouble('cursorSpeed') ?? cursorSpeed;
+    _cursorAcceleration =
+        prefs.getDouble('cursorAcceleration') ?? cursorAcceleration;
+    _keyPressInterval = prefs.getInt('keyPressInterval') ?? keyPressInterval;
+    _initialized = true;
+    return this;
+  }
+
+  Future<bool> setCursorSpeed(double speed) async {
+    if (!(_initialized)) throw Exception('_prefs not initialized!');
+    final prefs = await _prefs;
+    if (await prefs.setDouble('cursorSpeed', speed)) {
+      _cursorSpeed = speed;
+      return true;
+    }
+
+    return false;
+  }
+
+  Future<bool> setCursorAcceleration(double acceleration) async {
+    if (!(_initialized)) throw Exception('_prefs not initialized!');
+    final prefs = await _prefs;
+    if (await prefs.setDouble('cursorAcceleration', acceleration)) {
+      _cursorAcceleration = acceleration;
+      return true;
+    }
+
+    return false;
+  }
+
+  Future<bool> setKeyPressInterval(int interval) async {
+    if (!(_initialized)) throw Exception('_prefs not initialized!');
+    final prefs = await _prefs;
+    if (await prefs.setInt('keyPressInterval', interval)) {
+      _keyPressInterval = interval;
+      return true;
+    }
+
+    return false;
   }
 }

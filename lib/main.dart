@@ -2,6 +2,7 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart' as flutter_acrylic;
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:remotecontrol/pages/server.dart';
 import 'package:remotecontrol_lib/logger.dart';
@@ -9,6 +10,7 @@ import 'package:system_theme/system_theme.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'input.dart';
 import 'theme.dart';
 
 const String appTitle = 'Remote Input Server';
@@ -33,6 +35,12 @@ void main() async {
   }
 
   setPathUrlStrategy();
+
+  // Initialize the logger.
+  logger.subscribe(Level.trace, (_, message) => print(message));
+
+  // Provide the dependencies via GetX.
+  Get.put(await InputConfig().load());
 
   if (isDesktop) {
     await flutter_acrylic.Window.initialize();
@@ -123,8 +131,6 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
   void initState() {
     windowManager.addListener(this);
     super.initState();
-
-    logger.subscribe(Level.trace, (_, message) => print(message));
 
     /*Timer mytimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       logger.trace('Timer tick');
