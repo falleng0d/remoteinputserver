@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'package:remotecontrol_lib/input/virtualkeys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:win32/win32.dart';
@@ -195,7 +196,7 @@ class Win32InputService {
   }
 }
 
-class InputConfig {
+class InputConfig extends GetxService {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   bool _initialized = false;
 
@@ -203,9 +204,11 @@ class InputConfig {
   double _cursorAcceleration = 1.0;
   int _keyPressInterval = 50;
 
-  get cursorSpeed => _cursorSpeed;
-  get cursorAcceleration => _cursorAcceleration;
-  get keyPressInterval => _keyPressInterval;
+  double get cursorSpeed => _cursorSpeed;
+  double get cursorAcceleration => _cursorAcceleration;
+  int get keyPressInterval => _keyPressInterval;
+
+  RxInt updateNotifier = RxInt(0);
 
   InputConfig();
 
@@ -221,11 +224,17 @@ class InputConfig {
     return this;
   }
 
+  void notify() {
+    updateNotifier.value++;
+  }
+
   Future<bool> setCursorSpeed(double speed) async {
     if (!(_initialized)) throw Exception('_prefs not initialized!');
     final prefs = await _prefs;
     if (await prefs.setDouble('cursorSpeed', speed)) {
       _cursorSpeed = speed;
+      notify();
+
       return true;
     }
 
@@ -237,6 +246,8 @@ class InputConfig {
     final prefs = await _prefs;
     if (await prefs.setDouble('cursorAcceleration', acceleration)) {
       _cursorAcceleration = acceleration;
+      notify();
+
       return true;
     }
 
@@ -248,6 +259,8 @@ class InputConfig {
     final prefs = await _prefs;
     if (await prefs.setInt('keyPressInterval', interval)) {
       _keyPressInterval = interval;
+      notify();
+
       return true;
     }
 

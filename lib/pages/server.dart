@@ -1,6 +1,8 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get.dart';
+import 'package:remotecontrol/input.dart';
 import 'package:remotecontrol_lib/logger.dart';
 
 import '../components/log_box.dart';
@@ -17,6 +19,8 @@ class ServerPage extends StatefulWidget {
 }
 
 class _ServerPageState extends State<ServerPage> {
+  InputConfig config = Get.find<InputConfig>();
+
   final TextEditingController _portController =
       TextEditingController(text: "$_defaultPort");
   late Logger _logger;
@@ -31,6 +35,10 @@ class _ServerPageState extends State<ServerPage> {
   _ServerPageState() {
     _logger = Logger.instance();
     _server = InputServerController(_defaultPort, _logger);
+
+    config.updateNotifier.stream.listen((event) {
+      setState(() {});
+    });
   }
 
   @override
@@ -57,9 +65,10 @@ class _ServerPageState extends State<ServerPage> {
         bottomBar: Row(
           children: [
             InfoBar(
-              title: const Text('Tip:'),
-              content: const Text(
-                'You can click on any icon to execute the action.',
+              title: const Text('Config:'),
+              content: Text(
+                'Speed: ${config.cursorSpeed.toStringAsFixed(2)} '
+                'Acceleration: ${config.cursorAcceleration.toStringAsFixed(2)}',
               ),
               style: InfoBarThemeData(
                 padding: EdgeInsets.fromLTRB(padding, 0, 0, 0),
@@ -147,27 +156,7 @@ class _ServerPageState extends State<ServerPage> {
               ),
             ],
           ),
-        )
-
-        /*GridView.extent(
-        maxCrossAxisExtent: 150,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        padding: EdgeInsets.only(
-          top: kPageDefaultVerticalPadding,
-          right: padding,
-          left: padding,
-        ),
-        children: [
-          Button(
-              child: const Text('Mouse Left Click'),
-              onPressed: () async {
-                Future.delayed(const Duration(seconds: 1),
-                    () => mouseClick(MouseKeys.left));
-              })
-        ],
-      ),*/
-        );
+        ));
   }
 
   void _stopServer() {
