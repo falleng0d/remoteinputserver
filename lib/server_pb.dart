@@ -50,7 +50,7 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
     _logger.trace('Mouse key pressed: ${request.id}');
     if (request.type == pb.MouseKey_KeyActionType.PRESS) {
       MouseButton button = MouseButton.values[request.id];
-      SystemKey key = SystemKey.fromMouseButton(button);
+      MBWrapper key = MBWrapper.fromMouseButton(button);
       var result = systemInputService.pressMouseKey(
         key,
         interval: config.keyPressInterval,

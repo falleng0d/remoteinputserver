@@ -10,7 +10,7 @@ import 'package:win32/win32.dart';
 
 const VK_A = 0x41;
 
-Future<int> mouseClick(SystemKey key, {int interval = 50}) async {
+Future<int> mouseClick(MBWrapper key, {int interval = 50}) async {
   final mouse = calloc<INPUT>();
 
   mouse.ref.type = INPUT_MOUSE;
@@ -156,7 +156,7 @@ class Win32InputService {
     return result;
   }
 
-  Future<int> pressMouseKey(SystemKey key, {int interval = 50}) async {
+  Future<int> pressMouseKey(MBWrapper key, {int interval = 50}) async {
     return mouseClick(key, interval: interval);
   }
 
@@ -178,7 +178,7 @@ class Win32InputService {
     return result;
   }
 
-  Future<int> sendMouseKeyState(SystemKey key, KeyState state) async {
+  Future<int> sendMouseKeyState(MBWrapper key, KeyState state) async {
     final mouse = calloc<INPUT>();
     mouse.ref.type = INPUT_MOUSE;
     mouse.ref.mi.dwFlags = state == KeyState.DOWN ? key.keyDown : key.keyUp;
