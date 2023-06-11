@@ -5,6 +5,7 @@ import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/proto/input.pbgrpc.dart' as pb;
 
 import '../model/win32_input.dart';
+import 'input_config.dart';
 import 'win32_input_service.dart';
 
 /// Provides implementation for protobuf InputMethodsServiceBase methods

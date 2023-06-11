@@ -4,7 +4,6 @@ import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:remotecontrol/components/cursor_preview.dart';
 import 'package:remotecontrol/components/split_container.dart';
-import 'package:remotecontrol/services/win32_input_service.dart';
 import 'package:remotecontrol_lib/logger.dart';
 
 import '../components/info_label.dart';
@@ -12,6 +11,7 @@ import '../components/log_box.dart';
 import '../components/server_status.dart';
 import '../components/text_button_input.dart';
 import '../controllers/input_controller.dart';
+import '../services/input_config.dart';
 
 const _defaultPort = 9035;
 
