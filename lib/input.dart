@@ -10,7 +10,7 @@ import 'package:win32/win32.dart';
 
 const VK_A = 0x41;
 
-Future<int> mouseClick(MBWrapper key, {int interval = 50}) async {
+Future<int> mouseClick(MBWrapper key, {int interval = 20}) async {
   final mouse = calloc<INPUT>();
 
   mouse.ref.type = INPUT_MOUSE;
@@ -98,7 +98,7 @@ void testSendinput() {
 }
 
 class Win32InputService {
-  Future<int> sendVirtualKey(int virtualKeyCode, {int interval = 50}) async {
+  Future<int> sendVirtualKey(int virtualKeyCode, {int interval = 20}) async {
     final kbd = calloc<INPUT>();
     kbd.ref.type = INPUT_KEYBOARD;
     kbd.ref.ki.wVk = virtualKeyCode;
@@ -156,7 +156,7 @@ class Win32InputService {
     return result;
   }
 
-  Future<int> pressMouseKey(MBWrapper key, {int interval = 50}) async {
+  Future<int> pressMouseKey(MBWrapper key, {int interval = 20}) async {
     return mouseClick(key, interval: interval);
   }
 
@@ -209,6 +209,10 @@ class InputConfig extends GetxService {
   int get keyPressInterval => _keyPressInterval;
 
   RxInt updateNotifier = RxInt(0);
+
+  final _isDebug = false.obs;
+  set isDebug(bool value) => _isDebug.value = value;
+  bool get isDebug => _isDebug.value;
 
   InputConfig();
 

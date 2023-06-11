@@ -9,16 +9,30 @@ import 'package:remotecontrol_lib/proto/input.pbgrpc.dart' as pb;
 
 import 'input.dart';
 
+String TRUE = 1.toString();
+String FALSE = 0.toString();
+
 /// Provides implementation for protobuf InputMethodsServiceBase methods
 class InputMethodsService extends pb.InputMethodsServiceBase {
   final Logger _logger;
   final Win32InputService systemInputService;
   final InputConfig config = Get.find<InputConfig>();
 
+  get isDebug => config.isDebug;
+
+  // TODO: implement modifiers
+  final activeModifiers = <int>[];
+
   InputMethodsService(this._logger, this.systemInputService);
 
+  /* region Behavior */
   @override
   Future<pb.Response> pressKey(ServiceCall call, pb.Key request) async {
+    if (isDebug) {
+      _logger.trace('Key pressed: ${request.id}');
+      return pb.Response()..message = TRUE;
+    }
+
     if (request.type == pb.Key_KeyActionType.PRESS) {
       var result = systemInputService.sendVirtualKey(
         request.id,
@@ -34,6 +48,11 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
 
   @override
   Future<pb.Response> moveMouse(ServiceCall call, pb.MouseMove request) async {
+    if (isDebug) {
+      _logger.trace('Mouse moved: ${request.x}, ${request.y}');
+      return pb.Response()..message = TRUE;
+    }
+
     // _logger.trace('Mouse moved: ${request.x}, ${request.y}');
     var result = systemInputService.moveMouseRelative(
       request.x,
@@ -48,6 +67,11 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
   Future<pb.Response> pressMouseKey(
       ServiceCall call, pb.MouseKey request) async {
     _logger.trace('Mouse key pressed: ${request.id}');
+
+    if (isDebug) {
+      return pb.Response()..message = TRUE;
+    }
+
     if (request.type == pb.MouseKey_KeyActionType.PRESS) {
       MouseButton button = MouseButton.values[request.id];
       MBWrapper key = MBWrapper.fromMouseButton(button);
@@ -60,7 +84,9 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
 
     throw UnimplementedError();
   }
+  /* endregion Behavior */
 
+  /* region Configuration */
   @override
   Future<pb.Config> getConfig(ServiceCall call, pb.Empty request) {
     return Future.value(
@@ -101,6 +127,7 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
 
     return request;
   }
+  /* endregion Configuration */
 
   @override
   Future<pb.Response> ping(ServiceCall call, pb.Empty request) async {
