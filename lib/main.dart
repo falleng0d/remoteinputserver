@@ -10,7 +10,7 @@ import 'package:system_theme/system_theme.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'services/input.dart';
+import 'services/win32_input_service.dart';
 import 'theme.dart';
 
 const String appTitle = 'Remote Input Server';
