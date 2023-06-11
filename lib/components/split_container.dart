@@ -6,25 +6,46 @@ class SplitContainer extends StatelessWidget {
   final Widget left;
   final Widget right;
   final Direction direction;
+  final bool expandLeft, expandRight;
 
   const SplitContainer({
     Key? key,
     required this.left,
     required this.right,
     this.direction = Direction.horizontal,
+    this.expandLeft = true,
+    this.expandRight = true,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return Flexible(
         child: direction == Direction.horizontal
             ? Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [Expanded(child: left), Expanded(child: right)],
+                children: [
+                  Flexible(
+                    fit: expandLeft ? FlexFit.tight : FlexFit.loose,
+                    child: left,
+                  ),
+                  Flexible(
+                    fit: expandRight ? FlexFit.tight : FlexFit.loose,
+                    child: right,
+                  ),
+                ],
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [Expanded(child: left), Expanded(child: right)],
+                children: [
+                  Flexible(
+                    fit: expandLeft ? FlexFit.tight : FlexFit.loose,
+                    child: left,
+                  ),
+                  Flexible(
+                    fit: expandRight ? FlexFit.tight : FlexFit.loose,
+                    child: right,
+                  ),
+                ],
               ));
   }
 }
