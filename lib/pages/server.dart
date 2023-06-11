@@ -4,14 +4,14 @@ import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:remotecontrol/components/cursor_preview.dart';
 import 'package:remotecontrol/components/split_container.dart';
-import 'package:remotecontrol/input.dart';
+import 'package:remotecontrol/services/input.dart';
 import 'package:remotecontrol_lib/logger.dart';
 
 import '../components/info_label.dart';
 import '../components/log_box.dart';
 import '../components/server_status.dart';
 import '../components/text_button_input.dart';
-import '../server_pb.dart';
+import '../services/server_pb.dart';
 
 const _defaultPort = 9035;
 

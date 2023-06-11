@@ -10,7 +10,7 @@ import 'package:system_theme/system_theme.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'input.dart';
+import 'services/input.dart';
 import 'theme.dart';
 
 const String appTitle = 'Remote Input Server';
@@ -29,8 +29,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (kIsWeb ||
-      [TargetPlatform.windows, TargetPlatform.android]
-          .contains(defaultTargetPlatform)) {
+      [TargetPlatform.windows, TargetPlatform.android].contains(defaultTargetPlatform)) {
     SystemTheme.accentColor;
   }
 
@@ -196,8 +195,7 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
                                     color: Color.fromARGB(255, 154, 154, 154),
                                   ),
                                   onPressed: () {
-                                    WindowManager.instance
-                                        .setPreventClose(false);
+                                    WindowManager.instance.setPreventClose(false);
                                     WindowManager.instance.close();
                                   }),
                             ],

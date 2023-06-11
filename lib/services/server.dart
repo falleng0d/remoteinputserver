@@ -1,7 +1,7 @@
-import 'package:remotecontrol/components/server_status.dart';
-import 'package:remotecontrol_lib/logger.dart';
 import 'dart:io';
 
+import 'package:remotecontrol/components/server_status.dart';
+import 'package:remotecontrol_lib/logger.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
@@ -33,8 +33,9 @@ class InputServer {
   }
 
   Future<void> listen() async {
-    var handler =
-    const Pipeline().addMiddleware(logRequestsMiddleware(_logger)).addHandler(_echoRequest);
+    var handler = const Pipeline()
+        .addMiddleware(logRequestsMiddleware(_logger))
+        .addHandler(_echoRequest);
 
     _status = ServerStatus.online;
     _logger.info('Remote input server listening on port $_port');
