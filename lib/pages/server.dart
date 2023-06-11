@@ -149,15 +149,14 @@ class _ServerPageState extends State<ServerPage> {
                           children: [
                             Text(
                               "Server Ip: $serverIp",
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             IconButton(
                               icon: const Icon(FluentIcons.copy),
                               onPressed: () {
-                                Clipboard.setData(ClipboardData(text: serverIp))
-                                    .then((_) => _logger.trace(
-                                        "Copied server ip to clipboard"));
+                                Clipboard.setData(ClipboardData(text: serverIp)).then(
+                                    (_) =>
+                                        _logger.trace("Copied server ip to clipboard"));
                               },
                             ),
                           ],
