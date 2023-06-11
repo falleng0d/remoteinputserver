@@ -37,6 +37,7 @@ dependencies:
   url_launcher: ^6.1.10
   provider: ^6.0.5
   stack_trace: ^1.11.0
+  ffi: ^2.0.2
   remotecontrol_lib:
     path: ../remotecontrol-lib
   grpc:

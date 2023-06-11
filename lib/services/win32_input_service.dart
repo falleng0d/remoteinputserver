@@ -8,8 +8,6 @@ import 'package:remotecontrol_lib/input/virtualkeys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:win32/win32.dart';
 
-const VK_A = 0x41;
-
 Future<int> mouseClick(MBWrapper key, {int interval = 20}) async {
   final mouse = calloc<INPUT>();
 
@@ -128,15 +126,11 @@ class Win32InputService {
 
   Future<int> moveMouseRelative(double deltaX, double deltaY,
       {double speed = 1.0, double acceleration = 1.0}) async {
-    double adjustedDeltaX =
-        deltaX * speed * (65535.0 / GetSystemMetrics(SM_CXSCREEN));
-    double adjustedDeltaY =
-        deltaY * speed * (65535.0 / GetSystemMetrics(SM_CYSCREEN));
+    double adjustedDeltaX = deltaX * speed * (65535.0 / GetSystemMetrics(SM_CXSCREEN));
+    double adjustedDeltaY = deltaY * speed * (65535.0 / GetSystemMetrics(SM_CYSCREEN));
 
-    adjustedDeltaX =
-        adjustedDeltaX.sign * pow(adjustedDeltaX.abs(), acceleration);
-    adjustedDeltaY =
-        adjustedDeltaY.sign * pow(adjustedDeltaY.abs(), acceleration);
+    adjustedDeltaX = adjustedDeltaX.sign * pow(adjustedDeltaX.abs(), acceleration);
+    adjustedDeltaY = adjustedDeltaY.sign * pow(adjustedDeltaY.abs(), acceleration);
 
     final mouse = calloc<INPUT>();
     mouse.ref.type = INPUT_MOUSE;
@@ -221,8 +215,7 @@ class InputConfig extends GetxService {
   Future<InputConfig> load() async {
     final prefs = await _prefs;
     _cursorSpeed = prefs.getDouble('cursorSpeed') ?? cursorSpeed;
-    _cursorAcceleration =
-        prefs.getDouble('cursorAcceleration') ?? cursorAcceleration;
+    _cursorAcceleration = prefs.getDouble('cursorAcceleration') ?? cursorAcceleration;
     _keyPressInterval = prefs.getInt('keyPressInterval') ?? keyPressInterval;
     _initialized = true;
     return this;
