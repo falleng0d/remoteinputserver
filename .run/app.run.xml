@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="app" type="FlutterRunConfigurationType" factoryName="Flutter">
+    <option name="additionalArgs" value="--vmservice-out-file=detective_connect.txt" />
+    <option name="filePath" value="$PROJECT_DIR$/../remotecontrol_app/lib/main.dart" />
+    <method v="2" />
+  </configuration>
+</component>
