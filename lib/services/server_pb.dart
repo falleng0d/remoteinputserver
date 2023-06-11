@@ -4,10 +4,8 @@ import 'package:remotecontrol_lib/input/virtualkeys.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/proto/input.pbgrpc.dart' as pb;
 
+import '../model/win32_input.dart';
 import 'win32_input_service.dart';
-
-String TRUE = 1.toString();
-String FALSE = 0.toString();
 
 /// Provides implementation for protobuf InputMethodsServiceBase methods
 class InputMethodsService extends pb.InputMethodsServiceBase {
