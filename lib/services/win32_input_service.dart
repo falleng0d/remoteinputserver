@@ -57,6 +57,9 @@ class MouseKeyInputReceivedData extends InputReceivedData {
       : super(InputReceivedEvent.PressMouseKey);
 }
 
+typedef InputEventHandler = void Function(
+    InputReceivedEvent event, InputReceivedData data);
+
 class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData> {
   bool isDebug = false;
 

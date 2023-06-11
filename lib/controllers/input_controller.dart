@@ -13,6 +13,7 @@ class InputServerController {
   Server? _server;
   int _port;
   ServerStatus _status = ServerStatus.offline;
+  final Win32InputService _inputService = Win32InputService();
   final Logger _logger;
   late InternetAddress _address;
 
@@ -36,7 +37,7 @@ class InputServerController {
 
   Future<void> listen() async {
     _server = Server(
-      [InputMethodsService(_logger, Win32InputService())],
+      [InputMethodsService(_logger, _inputService)],
       <Interceptor>[buildLoggingMiddleware(_logger)],
       CodecRegistry(codecs: const [GzipCodec()]),
     );
@@ -52,6 +53,10 @@ class InputServerController {
     _server = null;
     _status = ServerStatus.offline;
     _logger.info('Remote input server stopped');
+  }
+
+  void setDebugEventHanler(InputEventHandler handler) {
+    _inputService.subscribeAll((t, e) => handler(t, e));
   }
 }
 
