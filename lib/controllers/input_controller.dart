@@ -4,7 +4,7 @@ import 'package:grpc/grpc.dart';
 import 'package:remotecontrol_lib/logger.dart';
 
 import '../components/server_status.dart';
-import '../services/server_pb.dart';
+import '../services/input_service.dart';
 import '../services/win32_input_service.dart';
 
 /// Serves protobuf [InputMethodsService] over gRPC
