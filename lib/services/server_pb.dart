@@ -8,7 +8,9 @@ import '../model/win32_input.dart';
 import 'input_config.dart';
 import 'win32_input_service.dart';
 
-/// Provides implementation for protobuf InputMethodsServiceBase methods
+/// Provides implementation for protobuf [pb.InputMethodsServiceBase] methods
+/// Delegates handling to [Win32InputService] using settings from [InputConfig]
+/// DI Dependencies: [InputConfig]
 class InputMethodsService extends pb.InputMethodsServiceBase {
   final Logger _logger;
   final Win32InputService systemInputService;
