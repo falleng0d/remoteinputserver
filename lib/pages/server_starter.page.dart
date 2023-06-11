@@ -12,6 +12,7 @@ import '../components/server_status.dart';
 import '../components/text_button_input.dart';
 import '../controllers/input_controller.dart';
 import '../services/input_config.dart';
+import '../services/win32_input_service.dart';
 
 const _defaultPort = 9035;
 
@@ -39,6 +40,7 @@ class _ServerPageState extends State<ServerPage> {
   _ServerPageState() {
     _logger = Logger.instance();
     _server = InputServerController(_defaultPort, _logger);
+    _server.setDebugEventHandler(inputEventHandler);
 
     config.updateNotifier.stream.listen((event) {
       setState(() {});
@@ -197,5 +199,10 @@ class _ServerPageState extends State<ServerPage> {
         _serverSatus = ServerStatus.online;
       });
     }
+  }
+
+  void inputEventHandler(InputReceivedEvent event, InputReceivedData data) {
+    logger.log("Received input event: $event");
+    logger.log("Received input data: $data");
   }
 }

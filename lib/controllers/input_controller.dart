@@ -55,8 +55,9 @@ class InputServerController {
     _logger.info('Remote input server stopped');
   }
 
-  void setDebugEventHanler(InputEventHandler handler) {
-    _inputService.subscribeAll((t, e) => handler(t, e));
+  void setDebugEventHandler(InputEventHandler handler) {
+    var events = InputReceivedEvent.values.toList();
+    _inputService.subscribeAll(events, (t, e) => handler(t, e));
   }
 }
 
