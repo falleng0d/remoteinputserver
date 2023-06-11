@@ -4,7 +4,6 @@ import 'package:remotecontrol_lib/input/virtualkeys.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/proto/input.pbgrpc.dart' as pb;
 
-import '../model/win32_input.dart';
 import 'input_config.dart';
 import 'win32_input_service.dart';
 
@@ -26,9 +25,10 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
   /* region Behavior */
   @override
   Future<pb.Response> pressKey(ServiceCall call, pb.Key request) async {
+    systemInputService.isDebug = config.isDebug;
+
     if (isDebug) {
       _logger.trace('Key pressed: ${request.id}');
-      return pb.Response()..message = TRUE;
     }
 
     if (request.type == pb.Key_KeyActionType.PRESS) {
@@ -46,9 +46,10 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
 
   @override
   Future<pb.Response> moveMouse(ServiceCall call, pb.MouseMove request) async {
+    systemInputService.isDebug = config.isDebug;
+
     if (isDebug) {
       _logger.trace('Mouse moved: ${request.x}, ${request.y}');
-      return pb.Response()..message = TRUE;
     }
 
     // _logger.trace('Mouse moved: ${request.x}, ${request.y}');
@@ -63,11 +64,9 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
 
   @override
   Future<pb.Response> pressMouseKey(ServiceCall call, pb.MouseKey request) async {
-    _logger.trace('Mouse key pressed: ${request.id}');
+    systemInputService.isDebug = config.isDebug;
 
-    if (isDebug) {
-      return pb.Response()..message = TRUE;
-    }
+    _logger.trace('Mouse key pressed: ${request.id}');
 
     if (request.type == pb.MouseKey_KeyActionType.PRESS) {
       MouseButton button = MouseButton.values[request.id];
