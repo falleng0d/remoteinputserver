@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart' as flutter_acrylic;
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
-import 'package:remotecontrol/pages/server.dart';
+import 'package:remotecontrol/pages/server_starter.page.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:url_strategy/url_strategy.dart';
