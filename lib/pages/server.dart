@@ -2,6 +2,7 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:remotecontrol/components/split_container.dart';
 import 'package:remotecontrol/input.dart';
 import 'package:remotecontrol_lib/logger.dart';
 
@@ -164,7 +165,19 @@ class _ServerPageState extends State<ServerPage> {
                       ],
                     ),
                     const Gap(5),
-                    const Expanded(child: LogBox()),
+                    SplitContainer(
+                      direction: Direction.vertical,
+                      left: const LogBox(),
+                      right: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: context.theme.primaryColor,
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
