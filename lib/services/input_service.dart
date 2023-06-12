@@ -27,16 +27,11 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
   Future<pb.Response> pressKey(ServiceCall call, pb.Key request) async {
     systemInputService.isDebug = config.isDebug;
 
-    if (isDebug) {
-      _logger.trace('Key pressed: ${request.id}');
-    }
-
     if (request.type == pb.Key_KeyActionType.PRESS) {
       var result = systemInputService.sendVirtualKey(
         request.id,
         interval: config.keyPressInterval,
       );
-      _logger.trace('Key pressed: ${request.id}');
       return pb.Response()..message = result.toString();
     }
 
@@ -47,10 +42,6 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
   @override
   Future<pb.Response> moveMouse(ServiceCall call, pb.MouseMove request) async {
     systemInputService.isDebug = config.isDebug;
-
-    if (isDebug) {
-      _logger.trace('Mouse moved: ${request.x}, ${request.y}');
-    }
 
     // _logger.trace('Mouse moved: ${request.x}, ${request.y}');
     var result = systemInputService.moveMouseRelative(
@@ -65,8 +56,6 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
   @override
   Future<pb.Response> pressMouseKey(ServiceCall call, pb.MouseKey request) async {
     systemInputService.isDebug = config.isDebug;
-
-    _logger.trace('Mouse key pressed: ${request.id}');
 
     if (request.type == pb.MouseKey_KeyActionType.PRESS) {
       MouseButton button = MouseButton.values[request.id];

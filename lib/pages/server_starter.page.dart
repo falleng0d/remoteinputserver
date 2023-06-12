@@ -47,6 +47,45 @@ class _ServerPageState extends State<ServerPage> {
     });
   }
 
+  void _stopServer() {
+    if (_serverSatus == ServerStatus.online) {
+      _server.stop().then((_) {
+        setState(() {
+          _serverSatus = ServerStatus.offline;
+        });
+      });
+    }
+  }
+
+  void _startServer(int port) {
+    if (_serverSatus == ServerStatus.offline) {
+      _server.port = port;
+      _server.listen();
+      setState(() {
+        _serverSatus = ServerStatus.online;
+      });
+    }
+  }
+
+  void inputEventHandler(InputReceivedEvent event, InputReceivedData data) {
+    switch (data.runtimeType) {
+      case MouseInputReceivedData:
+        var d = data as MouseInputReceivedData;
+        logger.log("Mouse moved: ${d.ajustedDeltaX}} ${d.ajustedDeltaY}");
+        break;
+      case MouseKeyInputReceivedData:
+        var d = data as MouseKeyInputReceivedData;
+        logger.log("Mouse key pressed: ${d.key} ${d.state ?? ''}");
+        break;
+      case KeyInputReceivedData:
+        var d = data as KeyInputReceivedData;
+        logger.log("Key pressed: ${d.virtualKeyCode} ${d.state ?? ''}");
+        break;
+      default:
+        logger.log("Unknown InputReceivedData: ${data.runtimeType}");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasFluentTheme(context));
@@ -179,30 +218,5 @@ class _ServerPageState extends State<ServerPage> {
             ],
           ),
         ));
-  }
-
-  void _stopServer() {
-    if (_serverSatus == ServerStatus.online) {
-      _server.stop().then((_) {
-        setState(() {
-          _serverSatus = ServerStatus.offline;
-        });
-      });
-    }
-  }
-
-  void _startServer(int port) {
-    if (_serverSatus == ServerStatus.offline) {
-      _server.port = port;
-      _server.listen();
-      setState(() {
-        _serverSatus = ServerStatus.online;
-      });
-    }
-  }
-
-  void inputEventHandler(InputReceivedEvent event, InputReceivedData data) {
-    logger.log("Received input event: $event");
-    logger.log("Received input data: $data");
   }
 }
