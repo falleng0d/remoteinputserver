@@ -86,44 +86,114 @@ class _ServerPageState extends State<ServerPage> {
     }
   }
 
+  Widget buildHeader(double padding) {
+    return Padding(
+      padding: EdgeInsets.only(right: padding),
+      child: Row(
+        children: [
+          Expanded(
+            child: PageHeader(
+              title: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 50),
+                  child: const Text('Remote Input Server')),
+            ),
+          ),
+          ServerStatusText(_serverSatus)
+        ],
+      ),
+    );
+  }
+
+  Widget buildBottomBar(double padding) {
+    return Row(
+      children: [
+        InfoBar(
+          title: const Text('Config:'),
+          content: Text(
+            'Speed: ${config.cursorSpeed.toStringAsFixed(2)} '
+            'Acceleration: ${config.cursorAcceleration.toStringAsFixed(2)}',
+          ),
+          style: InfoBarThemeData(
+            padding: EdgeInsets.fromLTRB(padding, 0, 0, 0),
+            decoration: (_) => const BoxDecoration(
+              border: null,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildDebugModeToggle() {
+    return InfoLabel2(
+      label: "Toggle Debug Mode",
+      crossAxisAlignment: CrossAxisAlignment.end,
+      child: Obx(() => ToggleSwitch(
+          checked: config.isDebug,
+          onChanged: (value) {
+            config.isDebug = value;
+            logger.log("Debug mode: ${config.isDebug}");
+          })),
+    );
+  }
+
+  Widget buildPortTextInput() {
+    return TextButtonInput(
+      header: 'Port',
+      placeholder: _defaultPort.toString(),
+      onPressed: () {
+        if (!isServerSarted) {
+          var port = int.tryParse(_portController.text);
+          if (port != null) {
+            _startServer(port);
+          }
+        } else {
+          _stopServer();
+        }
+      },
+      buttonText: isServerSarted ? 'Stop Server' : 'Start Server',
+      autovalidateMode: AutovalidateMode.always,
+      keyboardType: TextInputType.number,
+      controller: _portController,
+      textInputEnabled: !isServerSarted,
+      validator: (text) {
+        if (text == null || text.isEmpty) return 'Provide a port';
+        if (int.tryParse(text) == null) return 'Port not valid';
+        return null;
+      },
+      icon: const Icon(FluentIcons.plug),
+      buttonIcon: isServerSarted
+          ? const Icon(FluentIcons.stop_solid)
+          : const Icon(FluentIcons.play_solid),
+    );
+  }
+
+  Widget buildServerIpClippable() {
+    return Row(
+      children: [
+        Text(
+          "Server Ip: $serverIp",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        IconButton(
+          icon: const Icon(FluentIcons.copy),
+          onPressed: () {
+            Clipboard.setData(ClipboardData(text: serverIp))
+                .then((_) => _logger.trace("Copied server ip to clipboard"));
+          },
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasFluentTheme(context));
     final padding = PageHeader.horizontalPadding(context);
 
     return ScaffoldPage(
-        header: Padding(
-          padding: EdgeInsets.only(right: padding),
-          child: Row(
-            children: [
-              Expanded(
-                child: PageHeader(
-                  title: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 50),
-                      child: const Text('Remote Input Server')),
-                ),
-              ),
-              ServerStatusText(_serverSatus)
-            ],
-          ),
-        ),
-        bottomBar: Row(
-          children: [
-            InfoBar(
-              title: const Text('Config:'),
-              content: Text(
-                'Speed: ${config.cursorSpeed.toStringAsFixed(2)} '
-                'Acceleration: ${config.cursorAcceleration.toStringAsFixed(2)}',
-              ),
-              style: InfoBarThemeData(
-                padding: EdgeInsets.fromLTRB(padding, 0, 0, 0),
-                decoration: (_) => const BoxDecoration(
-                  border: null,
-                ),
-              ),
-            ),
-          ],
-        ),
+        header: buildHeader(padding),
+        bottomBar: buildBottomBar(padding),
         content: Container(
           constraints: const BoxConstraints.expand(),
           padding: EdgeInsets.only(
@@ -138,44 +208,8 @@ class _ServerPageState extends State<ServerPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  TextButtonInput(
-                    header: 'Port',
-                    placeholder: _defaultPort.toString(),
-                    onPressed: () {
-                      if (!isServerSarted) {
-                        var port = int.tryParse(_portController.text);
-                        if (port != null) {
-                          _startServer(port);
-                        }
-                      } else {
-                        _stopServer();
-                      }
-                    },
-                    buttonText: isServerSarted ? 'Stop Server' : 'Start Server',
-                    autovalidateMode: AutovalidateMode.always,
-                    keyboardType: TextInputType.number,
-                    controller: _portController,
-                    textInputEnabled: !isServerSarted,
-                    validator: (text) {
-                      if (text == null || text.isEmpty) return 'Provide a port';
-                      if (int.tryParse(text) == null) return 'Port not valid';
-                      return null;
-                    },
-                    icon: const Icon(FluentIcons.plug),
-                    buttonIcon: isServerSarted
-                        ? const Icon(FluentIcons.stop_solid)
-                        : const Icon(FluentIcons.play_solid),
-                  ),
-                  InfoLabel2(
-                    label: "Toggle Debug Mode",
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    child: Obx(() => ToggleSwitch(
-                        checked: config.isDebug,
-                        onChanged: (value) {
-                          config.isDebug = value;
-                          logger.log("Debug mode: ${config.isDebug}");
-                        })),
-                  ),
+                  buildPortTextInput(),
+                  buildDebugModeToggle(),
                 ],
               ),
               const Gap(10),
@@ -185,25 +219,7 @@ class _ServerPageState extends State<ServerPage> {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text("Log"),
-                        Row(
-                          children: [
-                            Text(
-                              "Server Ip: $serverIp",
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            IconButton(
-                              icon: const Icon(FluentIcons.copy),
-                              onPressed: () {
-                                Clipboard.setData(ClipboardData(text: serverIp)).then(
-                                    (_) =>
-                                        _logger.trace("Copied server ip to clipboard"));
-                              },
-                            ),
-                          ],
-                        )
-                      ],
+                      children: [const Text("Log"), buildServerIpClippable()],
                     ),
                     const Gap(5),
                     const SplitContainer(
