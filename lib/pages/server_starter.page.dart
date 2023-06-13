@@ -2,17 +2,16 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:remotecontrol/components/cursor_preview.dart';
-import 'package:remotecontrol/components/split_container.dart';
 import 'package:remotecontrol_lib/logger.dart';
 
+import '../components/cursor_preview.dart';
 import '../components/info_label.dart';
 import '../components/log_box.dart';
 import '../components/server_status.dart';
+import '../components/split_container.dart';
 import '../components/text_button_input.dart';
 import '../controllers/input_controller.dart';
 import '../services/input_config.dart';
-import '../services/win32_input_service.dart';
 
 const _defaultPort = 9035;
 
@@ -40,11 +39,8 @@ class _ServerPageState extends State<ServerPage> {
   _ServerPageState() {
     _logger = Logger.instance();
     _server = InputServerController(_defaultPort, _logger);
-    _server.setDebugEventHandler(inputEventHandler);
 
-    config.updateNotifier.stream.listen((event) {
-      setState(() {});
-    });
+    config.updateNotifier.stream.listen((event) => setState(() {}));
   }
 
   void _stopServer() {
@@ -64,25 +60,6 @@ class _ServerPageState extends State<ServerPage> {
       setState(() {
         _serverSatus = ServerStatus.online;
       });
-    }
-  }
-
-  void inputEventHandler(InputReceivedEvent event, InputReceivedData data) {
-    switch (data.runtimeType) {
-      case MouseInputReceivedData:
-        var d = data as MouseInputReceivedData;
-        logger.log("Mouse moved: ${d.ajustedDeltaX}} ${d.ajustedDeltaY}");
-        break;
-      case MouseKeyInputReceivedData:
-        var d = data as MouseKeyInputReceivedData;
-        logger.log("Mouse key pressed: ${d.key} ${d.state ?? ''}");
-        break;
-      case KeyInputReceivedData:
-        var d = data as KeyInputReceivedData;
-        logger.log("Key pressed: ${d.virtualKeyCode} ${d.state ?? ''}");
-        break;
-      default:
-        logger.log("Unknown InputReceivedData: ${data.runtimeType}");
     }
   }
 
@@ -132,7 +109,7 @@ class _ServerPageState extends State<ServerPage> {
           checked: config.isDebug,
           onChanged: (value) {
             config.isDebug = value;
-            logger.log("Debug mode: ${config.isDebug}");
+            logger.trace("Debug mode: ${config.isDebug}");
           })),
     );
   }
@@ -201,38 +178,37 @@ class _ServerPageState extends State<ServerPage> {
             right: padding,
             left: padding,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(mainAxisSize: MainAxisSize.max, children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                buildPortTextInput(),
+                buildDebugModeToggle(),
+              ],
+            ),
+            const Gap(10),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
                 children: [
-                  buildPortTextInput(),
-                  buildDebugModeToggle(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [const Text("Log"), buildServerIpClippable()],
+                  ),
+                  const Gap(5),
+                  Obx(() => !config.isDebug
+                      ? const Expanded(child: LogBox())
+                      : SplitContainer(
+                          direction: Direction.vertical,
+                          expandRight: false,
+                          left: const LogBox(),
+                          right: CursorPreview(server: _server),
+                        )),
                 ],
               ),
-              const Gap(10),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [const Text("Log"), buildServerIpClippable()],
-                    ),
-                    const Gap(5),
-                    const SplitContainer(
-                      direction: Direction.vertical,
-                      expandRight: false,
-                      left: LogBox(),
-                      right: CursorPreview(),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ]),
         ));
   }
 }

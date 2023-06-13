@@ -85,10 +85,11 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
   Future<pb.Config> setConfig(ServiceCall call, pb.Config request) async {
     if (request.hasCursorAcceleration()) {
       if (config.cursorAcceleration == request.cursorAcceleration) {
+        _logger.trace('Cursor acceleration already set to ${request.cursorAcceleration}');
         return request;
       }
       if (await config.setCursorAcceleration(request.cursorAcceleration)) {
-        _logger.log('Mouse acceleration set to ${request.cursorAcceleration}');
+        _logger.trace('Mouse acceleration set to ${request.cursorAcceleration}');
         return request;
       } else {
         _logger
@@ -99,16 +100,19 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
 
     if (request.hasCursorSpeed()) {
       if (config.cursorSpeed == request.cursorSpeed) {
+        _logger.trace('Cursor speed already set to ${request.cursorSpeed}');
         return request;
       }
       if (await config.setCursorSpeed(request.cursorSpeed)) {
-        _logger.log('Mouse speed set to ${request.cursorSpeed}');
+        _logger.trace('Mouse speed set to ${request.cursorSpeed}');
         return request;
       } else {
         _logger.error('Failed to set mouse speed to ${request.cursorSpeed}');
         return pb.Config()..cursorSpeed = config.cursorSpeed;
       }
     }
+
+    _logger.error('setConfig: Unhandled config request: $request');
 
     return request;
   }

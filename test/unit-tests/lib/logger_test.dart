@@ -33,6 +33,16 @@ void main() {
     logger.info('test');
   });
 
+  test('Logger should invoke subscribed callbacks with higher level 2', () {
+    final logger = Logger();
+    logger.subscribe(Level.trace, (level, message) {
+      expect(level, Level.info);
+      expect(message.contains('test'), true);
+      expect(message.contains('[info]'), true);
+    });
+    logger.info('test');
+  });
+
   test('Logger should not invoke subscribed callbacks with lower level', () {
     final logger = Logger();
     logger.subscribe(Level.error, (level, message) {

@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'dart:ui';
 
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:get/get.dart';
@@ -19,21 +19,21 @@ class CursorBox extends StatelessWidget {
         super(key: key);
 
   double x(BoxConstraints constraints) {
+    double offset = 0;
     if (anchor == Alignment.center) {
-      double centerX = constraints.maxWidth / 2;
-      return min(centerX + _x, constraints.maxWidth - cursorSize);
+      offset = constraints.maxWidth / 2;
     }
 
-    return _x;
+    return clampDouble(_x + offset, 0, constraints.maxWidth - cursorSize);
   }
 
   double y(BoxConstraints constraints) {
+    double offset = 0;
     if (anchor == Alignment.center) {
-      double centerY = constraints.maxHeight / 2;
-      return min(centerY + _y, constraints.maxHeight - cursorSize);
+      offset = constraints.maxHeight / 2;
     }
 
-    return _y;
+    return clampDouble(_y + offset, 0, constraints.maxHeight - cursorSize);
   }
 
   @override

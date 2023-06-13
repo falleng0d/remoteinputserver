@@ -11,10 +11,13 @@ class LogBox extends StatefulWidget {
 class _LogBoxState extends State<LogBox> {
   final _logController = TextEditingController();
   late final ScrollController _scrollController;
-  List<void Function()> onDispose = [];
+  void Function(Level, String)? _logHandlder;
   bool isScrollToEnd = true;
 
   void log(String message) {
+    // run only if widget is mounted
+    if (!mounted) return;
+
     setState(() {
       _logController.text = '${_logController.text}$message\n';
 
@@ -22,6 +25,7 @@ class _LogBoxState extends State<LogBox> {
         Future.delayed(const Duration(milliseconds: 10), () {
           _scrollToEnd();
         });
+        _logHandlder = (_, message) => log(message);
       }
     });
   }
@@ -44,23 +48,19 @@ class _LogBoxState extends State<LogBox> {
   void initState() {
     super.initState();
 
-    callback(_, message) => log(message);
-
-    logger.subscribe(Level.trace, callback);
-
-    onDispose.add(() {
-      logger.unsubscribe(Level.trace, callback);
-    });
+    if (_logHandlder != null) {
+      _logHandlder = (_, message) => log(message);
+      logger.subscribe(Level.trace, _logHandlder!);
+    }
   }
 
   @override
   void dispose() {
-    _logController.dispose();
-    for (var callback in onDispose) {
-      callback();
-    }
-    onDispose.clear();
     super.dispose();
+    if (_logHandlder != null) {
+      logger.unsubscribe(Level.trace, _logHandlder!);
+    }
+    _logController.dispose();
   }
 
   @override
