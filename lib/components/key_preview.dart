@@ -15,9 +15,7 @@ class _KbdKey {
   _KbdKey(this.virtualKeyCode, {KeyState? state}) : _state = state;
 
   @override
-  String toString() {
-    return label;
-  }
+  String toString() => label;
 }
 
 class KeyHistoryPreview extends StatefulWidget {
