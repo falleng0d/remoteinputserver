@@ -6,6 +6,7 @@ import 'package:remotecontrol_lib/logger.dart';
 
 import '../components/cursor_preview.dart';
 import '../components/info_label.dart';
+import '../components/key_preview.dart';
 import '../components/log_box.dart';
 import '../components/server_status.dart';
 import '../components/split_container.dart';
@@ -41,6 +42,15 @@ class _ServerPageState extends State<ServerPage> {
     _server = InputServerController(_defaultPort, _logger);
 
     config.updateNotifier.stream.listen((event) => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    if (_serverSatus == ServerStatus.online) {
+      _server.stop();
+    }
+    _portController.dispose();
+    super.dispose();
   }
 
   void _stopServer() {
@@ -203,7 +213,14 @@ class _ServerPageState extends State<ServerPage> {
                           direction: Direction.vertical,
                           expandRight: false,
                           left: const LogBox(),
-                          right: CursorPreview(server: _server),
+                          right: Column(
+                            mainAxisSize: MainAxisSize.max,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: CursorPreview(server: _server)),
+                              Expanded(child: KeyHistoryPreview(server: _server)),
+                            ],
+                          ),
                         )),
                 ],
               ),

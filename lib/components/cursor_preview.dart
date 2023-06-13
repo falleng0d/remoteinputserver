@@ -54,8 +54,7 @@ class _CursorPreviewState extends State<CursorPreview> {
   @override
   void dispose() {
     super.dispose();
-    widget.server.clearDebugEventHandler();
-    logger.trace("CursorPreview disposed");
+    widget.server.clearDebugEventHandler(inputEventHandler);
   }
 
   @override

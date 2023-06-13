@@ -16,7 +16,7 @@ class InputServerController {
   final Win32InputService _inputService = Win32InputService();
   final Logger _logger;
   late InternetAddress _address;
-  InputEventHandler? _debugEventHandler;
+  final Map<InputEventHandler, dynamic> _debugEventHandlers = {};
 
   InputServerController(this._port, this._logger, {InternetAddress? address}) {
     _address = address ?? InternetAddress.loopbackIPv4;
@@ -58,20 +58,23 @@ class InputServerController {
 
   void setDebugEventHandler(InputEventHandler handler) {
     var events = InputReceivedEvent.values.toList();
-    if (_debugEventHandler != null) {
+    if (_debugEventHandlers.containsKey(handler)) {
       logger.error('Debug event handler already set');
       return;
     }
-    _debugEventHandler = (t, e) => handler(t, e);
-    _inputService.subscribeAll(events, _debugEventHandler!);
+    _debugEventHandlers[handler] = (t, e) => handler(t, e);
+    _inputService.subscribeAll(events, _debugEventHandlers[handler]);
   }
 
-  void clearDebugEventHandler() {
-    if (_debugEventHandler == null) return;
+  void clearDebugEventHandler(InputEventHandler handler) {
+    if (!_debugEventHandlers.containsKey(handler)) {
+      logger.error('Debug event handler not set');
+      return;
+    }
 
     var events = InputReceivedEvent.values.toList();
-    _inputService.unsubscribeAll(events, _debugEventHandler!);
-    _debugEventHandler = null;
+    _inputService.unsubscribeAll(events, _debugEventHandlers[handler]);
+    _debugEventHandlers.remove(handler);
   }
 }
 
