@@ -173,6 +173,36 @@ class _ServerPageState extends State<ServerPage> {
     );
   }
 
+  Widget buildLogSection() {
+    return Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [const Text("Log"), buildServerIpClippable()],
+          ),
+          const Gap(5),
+          Obx(() => !config.isDebug
+              ? const Expanded(child: LogBox())
+              : SplitContainer(
+                  direction: Direction.vertical,
+                  expandRight: false,
+                  left: const LogBox(),
+                  right: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: CursorPreview(server: _server)),
+                      Expanded(child: KeyHistoryPreview(server: _server)),
+                    ],
+                  ),
+                )),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasFluentTheme(context));
@@ -188,44 +218,21 @@ class _ServerPageState extends State<ServerPage> {
             right: padding,
             left: padding,
           ),
-          child: Column(mainAxisSize: MainAxisSize.max, children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                buildPortTextInput(),
-                buildDebugModeToggle(),
-              ],
-            ),
-            const Gap(10),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [const Text("Log"), buildServerIpClippable()],
-                  ),
-                  const Gap(5),
-                  Obx(() => !config.isDebug
-                      ? const Expanded(child: LogBox())
-                      : SplitContainer(
-                          direction: Direction.vertical,
-                          expandRight: false,
-                          left: const LogBox(),
-                          right: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(child: CursorPreview(server: _server)),
-                              Expanded(child: KeyHistoryPreview(server: _server)),
-                            ],
-                          ),
-                        )),
+                  buildPortTextInput(),
+                  buildDebugModeToggle(),
                 ],
               ),
-            ),
-          ]),
+              const Gap(10),
+              buildLogSection(),
+            ],
+          ),
         ));
   }
 }
