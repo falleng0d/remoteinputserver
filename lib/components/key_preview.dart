@@ -1,7 +1,24 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:remotecontrol_lib/input/virtualkeys.dart';
 
 import '../controllers/input_controller.dart';
 import '../services/win32_input_service.dart';
+
+class _KbdKey {
+  final int virtualKeyCode;
+  final KeyState? _state;
+
+  get state => _state != null ? '_$_state' : null;
+
+  get label => "${vkToKey(virtualKeyCode)}${state ?? ''}";
+
+  _KbdKey(this.virtualKeyCode, {KeyState? state}) : _state = state;
+
+  @override
+  String toString() {
+    return label;
+  }
+}
 
 class KeyHistoryPreview extends StatefulWidget {
   final InputServerController server;
@@ -13,7 +30,12 @@ class KeyHistoryPreview extends StatefulWidget {
 }
 
 class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
-  List<String> keys = ['A', 'B', 'C'];
+  List<_KbdKey> keys = [
+    _KbdKey(VK_A),
+    _KbdKey(VK_B),
+    _KbdKey(VK_C),
+    _KbdKey(VK_D),
+  ];
 
   @override
   initState() {
@@ -27,7 +49,7 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
         var d = data as KeyInputReceivedData;
         setState(() {
           // add to front of list
-          keys.insert(0, "${d.virtualKeyCode} ${d.state ?? ''}");
+          keys.insert(0, _KbdKey(d.virtualKeyCode, state: d.state));
           if (keys.length > 10) {
             keys.removeLast();
           }
@@ -40,6 +62,24 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
   void dispose() {
     super.dispose();
     widget.server.clearDebugEventHandler(inputEventHandler);
+  }
+
+  Widget buildKey(_KbdKey key) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      constraints: const BoxConstraints(maxWidth: 40),
+      decoration: BoxDecoration(
+        color: Colors.blue,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Center(
+        child: Text(
+          key.toString(),
+          style: const TextStyle(color: Colors.white),
+        ),
+      ),
+    );
   }
 
   @override
@@ -56,20 +96,7 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
                 child: ListView.builder(
                   itemCount: keys.length,
                   scrollDirection: Axis.horizontal,
-                  itemBuilder: (context, index) {
-                    return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        constraints: const BoxConstraints(maxWidth: 40),
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Center(
-                          child: Text(keys[index],
-                              style: const TextStyle(color: Colors.white)),
-                        ));
-                  },
+                  itemBuilder: (context, index) => buildKey(keys[index]),
                 ),
               ),
               const Spacer(),
