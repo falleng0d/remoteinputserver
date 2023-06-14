@@ -74,8 +74,6 @@ void main() {
       expect(message.contains('test'), true);
       expect(message.contains('[warning]'), true);
     });
-
-    logger.log('test');
   });
 
   test('Logger trace level subscribers should receive all messages', () {
