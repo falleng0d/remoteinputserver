@@ -51,7 +51,7 @@ dependencies:
   gap: ^3.0.0
   shelf: ^1.4.0
   intl: ^0.17.0
-  shared_preferences: ^2.1.0
+  shared_preferences: ^2.1.2
   get: ^4.6.5
 
 dev_dependencies:
