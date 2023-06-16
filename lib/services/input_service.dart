@@ -58,7 +58,7 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
     systemInputService.isDebug = config.isDebug;
 
     if (request.type == pb.MouseKey_KeyActionType.PRESS) {
-      MouseButton button = MouseButton.values[request.id];
+      MouseButtonType button = MouseButtonType.values[request.id];
       MBWrapper key = MBWrapper.fromMouseButton(button);
       var result = systemInputService.pressMouseKey(
         key,
