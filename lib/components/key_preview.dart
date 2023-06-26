@@ -28,12 +28,7 @@ class KeyHistoryPreview extends StatefulWidget {
 }
 
 class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
-  List<_KbdKey> keys = [
-    _KbdKey(VK_A),
-    _KbdKey(VK_B),
-    _KbdKey(VK_C),
-    _KbdKey(VK_D),
-  ];
+  List<_KbdKey> keys = [];
 
   @override
   initState() {
