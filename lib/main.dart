@@ -144,126 +144,6 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final appTheme = context.watch<AppTheme>();
-    return NavigationView(
-      appBar: NavigationAppBar(
-        title: () {
-          if (kIsWeb) return const Text(appTitle);
-          return const DragToMoveArea(
-            child: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: Text(appTitle),
-            ),
-          );
-        }(),
-        actions: kIsWeb
-            ? null
-            : DragToMoveArea(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Container(
-                          width: 45,
-                          height: 30,
-                          color: Colors.transparent,
-                          child: Row(
-                            children: [
-                              IconButton(
-                                  icon: const Icon(
-                                    FluentIcons.chrome_minimize,
-                                    color: Color.fromARGB(255, 154, 154, 154),
-                                  ),
-                                  onPressed: () {
-                                    WindowManager.instance.minimize();
-                                  }),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          width: 45,
-                          height: 30,
-                          color: Colors.transparent,
-                          child: Row(
-                            children: [
-                              IconButton(
-                                  icon: const Icon(
-                                    FluentIcons.chrome_close,
-                                    color: Color.fromARGB(255, 154, 154, 154),
-                                  ),
-                                  onPressed: () {
-                                    WindowManager.instance.setPreventClose(false);
-                                    WindowManager.instance.close();
-                                  }),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-      ),
-      pane: NavigationPane(
-        selected: index,
-        onChanged: (i) => setState(() => index = i),
-        size: const NavigationPaneSize(
-          openMinWidth: 100,
-          openMaxWidth: 320,
-        ),
-        header: Container(
-          height: kOneLineTileHeight,
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-          child: const FlutterLogo(
-            style: FlutterLogoStyle.horizontal,
-            size: 100,
-          ),
-        ),
-        displayMode: appTheme.displayMode,
-        indicator: () {
-          switch (appTheme.indicator) {
-            case NavigationIndicators.end:
-              return const EndNavigationIndicator();
-            case NavigationIndicators.sticky:
-            default:
-              return const StickyNavigationIndicator();
-          }
-        }(),
-        items: [
-          // It doesn't look good when resizing from compact to open
-          // PaneItemHeader(header: Text('User Interaction')),
-          PaneItem(
-            icon: const Icon(FluentIcons.analytics_view),
-            title: const Text('Server'),
-            body: const ServerPage(),
-          ),
-        ],
-        autoSuggestBox: AutoSuggestBox(
-          controller: TextEditingController(),
-          items: [
-            AutoSuggestBoxItem(
-              label: 'server',
-              value: 'Server',
-            ),
-          ],
-        ),
-        autoSuggestBoxReplacement: const Icon(FluentIcons.search),
-        footerItems: [
-          PaneItemSeparator(),
-          PaneItem(
-            icon: const Icon(FluentIcons.settings),
-            title: const Text('Settings'),
-            body: const Text('Settings Page'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
   void onWindowClose() async {
     bool isPreventClose = await windowManager.isPreventClose();
     if (!context.mounted) return;
@@ -294,5 +174,137 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
         },
       );
     }
+  }
+
+  NavigationAppBar buildNavigationAppBar() {
+    return NavigationAppBar(
+      title: () {
+        if (kIsWeb) return const Text(appTitle);
+        return const DragToMoveArea(
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(appTitle),
+          ),
+        );
+      }(),
+      actions: kIsWeb
+          ? null
+          : DragToMoveArea(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Spacer(),
+                  Row(
+                    children: [
+                      Container(
+                        width: 45,
+                        height: 30,
+                        color: Colors.transparent,
+                        child: Row(
+                          children: [
+                            IconButton(
+                                icon: const Icon(
+                                  FluentIcons.chrome_minimize,
+                                  color: Color.fromARGB(255, 154, 154, 154),
+                                ),
+                                onPressed: () {
+                                  WindowManager.instance.minimize();
+                                }),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: 45,
+                        height: 30,
+                        color: Colors.transparent,
+                        child: Row(
+                          children: [
+                            IconButton(
+                                icon: const Icon(
+                                  FluentIcons.chrome_close,
+                                  color: Color.fromARGB(255, 154, 154, 154),
+                                ),
+                                onPressed: () {
+                                  WindowManager.instance.setPreventClose(false);
+                                  WindowManager.instance.close();
+                                }),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+    );
+  }
+
+  List<NavigationPaneItem> buildFooterItems() {
+    return [
+      PaneItemSeparator(),
+      PaneItem(
+        icon: const Icon(FluentIcons.settings),
+        title: const Text('Settings'),
+        body: const Text('Settings Page'),
+      ),
+    ];
+  }
+
+  Container buildHeader() {
+    return Container(
+      height: kOneLineTileHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: const FlutterLogo(
+        style: FlutterLogoStyle.horizontal,
+        size: 100,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appTheme = context.watch<AppTheme>();
+    return NavigationView(
+      appBar: buildNavigationAppBar(),
+      pane: NavigationPane(
+        selected: index,
+        onChanged: (i) => setState(() => index = i),
+        size: const NavigationPaneSize(
+          openMinWidth: 100,
+          openMaxWidth: 320,
+        ),
+        header: buildHeader(),
+        displayMode: appTheme.displayMode,
+        indicator: () {
+          switch (appTheme.indicator) {
+            case NavigationIndicators.end:
+              return const EndNavigationIndicator();
+            case NavigationIndicators.sticky:
+            default:
+              return const StickyNavigationIndicator();
+          }
+        }(),
+        items: [
+          // It doesn't look good when resizing from compact to open
+          // PaneItemHeader(header: Text('User Interaction')),
+          PaneItem(
+            icon: const Icon(FluentIcons.analytics_view),
+            title: const Text('Server'),
+            body: const ServerPage(),
+          ),
+        ],
+        autoSuggestBox: AutoSuggestBox(
+          controller: TextEditingController(),
+          items: [
+            AutoSuggestBoxItem(
+              label: 'server',
+              value: 'Server',
+            ),
+          ],
+        ),
+        autoSuggestBoxReplacement: const Icon(FluentIcons.search),
+        footerItems: buildFooterItems(),
+      ),
+    );
   }
 }
