@@ -45,6 +45,13 @@ class _ServerPageState extends State<ServerPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    config.isDebug = true;
+    _startServer(_defaultPort);
+  }
+
+  @override
   void dispose() {
     if (_serverSatus == ServerStatus.online) {
       _server.stop();
