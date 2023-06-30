@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 import 'package:grpc/grpc.dart';
-import 'package:remotecontrol_lib/input/virtualkeys.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/proto/input.pbgrpc.dart' as pb;
+import 'package:remotecontrol_lib/virtualkeys.dart';
 
 import 'input_config.dart';
 import 'win32_input_service.dart';

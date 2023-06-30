@@ -1,5 +1,5 @@
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:remotecontrol_lib/input/virtualkeys.dart';
+import 'package:remotecontrol_lib/virtualkeys.dart';
 
 import '../controllers/input_controller.dart';
 import '../services/win32_input_service.dart';
