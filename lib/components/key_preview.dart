@@ -6,13 +6,13 @@ import '../services/win32_input_service.dart';
 
 class _KbdKey {
   final int virtualKeyCode;
-  final KeyState? _state;
+  final KeyActionType? _state;
 
   get state => _state != null ? '_$_state' : null;
 
-  get label => "${vkToKey(virtualKeyCode)}${state ?? ''}";
+  get label => vkToKey(virtualKeyCode);
 
-  _KbdKey(this.virtualKeyCode, {KeyState? state}) : _state = state;
+  _KbdKey(this.virtualKeyCode, {KeyActionType? state}) : _state = state;
 
   @override
   String toString() => label;
@@ -63,7 +63,16 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
       margin: const EdgeInsets.symmetric(horizontal: 4),
       constraints: const BoxConstraints(maxWidth: 40),
       decoration: BoxDecoration(
-        color: Colors.blue,
+        color: () {
+          switch (key._state) {
+            case KeyActionType.DOWN:
+              return Colors.red;
+            case KeyActionType.UP:
+              return Colors.green;
+            default:
+              return Colors.blue;
+          }
+        }(),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Center(

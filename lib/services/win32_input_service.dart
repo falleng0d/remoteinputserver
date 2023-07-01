@@ -42,7 +42,7 @@ class MouseInputReceivedData extends InputReceivedData {
 class KeyInputReceivedData extends InputReceivedData {
   final int virtualKeyCode;
   final int interval;
-  final KeyState? state;
+  final KeyActionType? state;
 
   const KeyInputReceivedData(this.virtualKeyCode, this.interval, {this.state})
       : super(InputReceivedEvent.PressKey);
@@ -51,7 +51,7 @@ class KeyInputReceivedData extends InputReceivedData {
 class MouseKeyInputReceivedData extends InputReceivedData {
   final MBWrapper key;
   final int interval;
-  final KeyState? state;
+  final KeyActionType? state;
 
   const MouseKeyInputReceivedData(this.key, this.interval, {this.state})
       : super(InputReceivedEvent.PressMouseKey);
@@ -137,7 +137,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
     return mouseClick(key, interval: interval);
   }
 
-  Future<int> sendKeyState(int virtualKeyCode, KeyState state) async {
+  Future<int> sendKeyState(int virtualKeyCode, KeyActionType state) async {
     if (isDebug) {
       var event = KeyInputReceivedData(virtualKeyCode, 0, state: state);
       dispatch(InputReceivedEvent.PressKey, event);
@@ -147,7 +147,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
     final kbd = calloc<INPUT>();
     kbd.ref.type = INPUT_KEYBOARD;
     kbd.ref.ki.wVk = virtualKeyCode;
-    kbd.ref.ki.dwFlags = state == KeyState.DOWN ? 0 : KEYEVENTF_KEYUP;
+    kbd.ref.ki.dwFlags = state == KeyActionType.DOWN ? 0 : KEYEVENTF_KEYUP;
 
     final result = SendInput(1, kbd, sizeOf<INPUT>());
     if (result != TRUE) {
@@ -161,7 +161,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
     return result;
   }
 
-  Future<int> sendMouseKeyState(MBWrapper key, KeyState state) async {
+  Future<int> sendMouseKeyState(MBWrapper key, KeyActionType state) async {
     if (isDebug) {
       var event = MouseKeyInputReceivedData(key, 0, state: state);
       dispatch(InputReceivedEvent.PressMouseKey, event);
@@ -170,7 +170,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
 
     final mouse = calloc<INPUT>();
     mouse.ref.type = INPUT_MOUSE;
-    mouse.ref.mi.dwFlags = state == KeyState.DOWN ? key.keyDown : key.keyUp;
+    mouse.ref.mi.dwFlags = state == KeyActionType.DOWN ? key.keyDown : key.keyUp;
 
     final result = SendInput(1, mouse, sizeOf<INPUT>());
     if (result != TRUE) {

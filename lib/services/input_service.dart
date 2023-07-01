@@ -27,6 +27,8 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
   Future<pb.Response> pressKey(ServiceCall call, pb.Key request) async {
     systemInputService.isDebug = config.isDebug;
 
+    _logger.info('Key pressed: ${vkToKey(request.id)} - action: ${request.type}');
+
     if (request.type == pb.Key_KeyActionType.PRESS) {
       var result = systemInputService.sendVirtualKey(
         request.id,
@@ -35,8 +37,12 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
       return pb.Response()..message = result.toString();
     }
 
-    _logger.error('Key press type not implemented: ${request.type}');
-    throw UnimplementedError();
+    var result = systemInputService.sendKeyState(
+      request.id,
+      pbToKeyActionType(request.type),
+    );
+
+    return pb.Response()..message = result.toString();
   }
 
   @override
