@@ -63,8 +63,9 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
   Future<pb.Response> pressMouseKey(ServiceCall call, pb.MouseKey request) async {
     systemInputService.isDebug = config.isDebug;
 
+    MouseButtonType button = MouseButtonType.values[request.id];
+
     if (request.type == pb.MouseKey_KeyActionType.PRESS) {
-      MouseButtonType button = MouseButtonType.values[request.id];
       MBWrapper key = MBWrapper.fromMouseButton(button);
       var result = systemInputService.pressMouseKey(
         key,
@@ -73,7 +74,12 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
       return pb.Response()..message = result.toString();
     }
 
-    throw UnimplementedError();
+    var result = systemInputService.sendMouseKeyState(
+      MBWrapper.fromMouseButton(button),
+      pbToButtonActionType(request.type),
+    );
+
+    return pb.Response()..message = result.toString();
   }
   /* endregion Behavior */
 

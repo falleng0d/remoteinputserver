@@ -7,6 +7,7 @@ class CursorBox extends StatelessWidget {
   final double _x, _y;
   final Alignment anchor;
   final double cursorSize;
+  final Color? cursorColor;
 
   const CursorBox({
     Key? key,
@@ -14,6 +15,7 @@ class CursorBox extends StatelessWidget {
     required double y,
     this.anchor = Alignment.center,
     this.cursorSize = 10,
+    this.cursorColor,
   })  : _y = y,
         _x = x,
         super(key: key);
@@ -61,7 +63,7 @@ class CursorBox extends StatelessWidget {
                 child: Container(
                   constraints: const BoxConstraints(maxWidth: 1, maxHeight: 1),
                   decoration: BoxDecoration(
-                    color: context.theme.primaryColor,
+                    color: cursorColor ?? context.theme.primaryColor,
                     shape: BoxShape.circle,
                   ),
                   width: 1.0,

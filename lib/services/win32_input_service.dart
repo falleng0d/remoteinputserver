@@ -21,7 +21,7 @@ abstract class InputReceivedData {
   const InputReceivedData(this.event);
 }
 
-class MouseInputReceivedData extends InputReceivedData {
+class MouseMoveReceivedData extends InputReceivedData {
   final double deltaX;
   final double deltaY;
   final double ajustedDeltaX;
@@ -29,7 +29,7 @@ class MouseInputReceivedData extends InputReceivedData {
   final double speed;
   final double acceleration;
 
-  const MouseInputReceivedData(
+  const MouseMoveReceivedData(
     this.deltaX,
     this.deltaY,
     this.ajustedDeltaX,
@@ -39,21 +39,21 @@ class MouseInputReceivedData extends InputReceivedData {
   ) : super(InputReceivedEvent.MoveMouse);
 }
 
-class KeyInputReceivedData extends InputReceivedData {
+class KeyboardKeyReceivedData extends InputReceivedData {
   final int virtualKeyCode;
   final int interval;
   final KeyActionType? state;
 
-  const KeyInputReceivedData(this.virtualKeyCode, this.interval, {this.state})
+  const KeyboardKeyReceivedData(this.virtualKeyCode, this.interval, {this.state})
       : super(InputReceivedEvent.PressKey);
 }
 
-class MouseKeyInputReceivedData extends InputReceivedData {
+class MouseButtonReceivedData extends InputReceivedData {
   final MBWrapper key;
   final int interval;
-  final KeyActionType? state;
+  final ButtonActionType? state;
 
-  const MouseKeyInputReceivedData(this.key, this.interval, {this.state})
+  const MouseButtonReceivedData(this.key, this.interval, {this.state})
       : super(InputReceivedEvent.PressMouseKey);
 }
 
@@ -65,7 +65,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
 
   Future<int> sendVirtualKey(int virtualKeyCode, {int interval = 20}) async {
     if (isDebug) {
-      var event = KeyInputReceivedData(virtualKeyCode, interval);
+      var event = KeyboardKeyReceivedData(virtualKeyCode, interval);
       dispatch(InputReceivedEvent.PressKey, event);
       return TRUE;
     }
@@ -103,7 +103,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
     double adjustedDeltaY = applyMouseCurve(deltaY, speed, acceleration, 1);
 
     if (isDebug) {
-      var event = MouseInputReceivedData(
+      var event = MouseMoveReceivedData(
           deltaX, deltaY, adjustedDeltaX, adjustedDeltaY, speed, acceleration);
       dispatch(InputReceivedEvent.MoveMouse, event);
       return TRUE;
@@ -129,7 +129,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
 
   Future<int> pressMouseKey(MBWrapper key, {int interval = 20}) async {
     if (isDebug) {
-      var event = MouseKeyInputReceivedData(key, interval);
+      var event = MouseButtonReceivedData(key, interval);
       dispatch(InputReceivedEvent.PressMouseKey, event);
       return TRUE;
     }
@@ -139,7 +139,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
 
   Future<int> sendKeyState(int virtualKeyCode, KeyActionType state) async {
     if (isDebug) {
-      var event = KeyInputReceivedData(virtualKeyCode, 0, state: state);
+      var event = KeyboardKeyReceivedData(virtualKeyCode, 0, state: state);
       dispatch(InputReceivedEvent.PressKey, event);
       return TRUE;
     }
@@ -161,9 +161,9 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
     return result;
   }
 
-  Future<int> sendMouseKeyState(MBWrapper key, KeyActionType state) async {
+  Future<int> sendMouseKeyState(MBWrapper key, ButtonActionType state) async {
     if (isDebug) {
-      var event = MouseKeyInputReceivedData(key, 0, state: state);
+      var event = MouseButtonReceivedData(key, 0, state: state);
       dispatch(InputReceivedEvent.PressMouseKey, event);
       return TRUE;
     }

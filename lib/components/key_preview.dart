@@ -38,8 +38,8 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
 
   void inputEventHandler(InputReceivedEvent event, InputReceivedData data) {
     switch (data.runtimeType) {
-      case KeyInputReceivedData:
-        var d = data as KeyInputReceivedData;
+      case KeyboardKeyReceivedData:
+        var d = data as KeyboardKeyReceivedData;
         setState(() {
           // add to front of list
           keys.insert(0, _KbdKey(d.virtualKeyCode, state: d.state));
