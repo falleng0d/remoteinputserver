@@ -24,7 +24,7 @@ class ServerPage extends StatefulWidget {
 }
 
 class _ServerPageState extends State<ServerPage> {
-  InputConfig config = Get.find<InputConfig>();
+  KeyboardInputConfig config = Get.find<KeyboardInputConfig>();
 
   final TextEditingController _portController =
       TextEditingController(text: "$_defaultPort");

@@ -1,13 +1,20 @@
 import 'package:get/get.dart';
+import 'package:remotecontrol/services/win32_input_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class InputConfig extends GetxService {
+class KeyboardInputConfig extends GetxService {
+  final Win32InputService _inputService;
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   bool _initialized = false;
 
   double _cursorSpeed = 1.0;
   double _cursorAcceleration = 1.0;
   int _keyPressInterval = 50;
+
+  // 1s
+  Duration keyRepeatDelay = const Duration(milliseconds: 500);
+  // 15hz
+  Duration keyRepeatInterval = const Duration(milliseconds: 1000 ~/ 15);
 
   double get cursorSpeed => _cursorSpeed;
   double get cursorAcceleration => _cursorAcceleration;
@@ -16,14 +23,18 @@ class InputConfig extends GetxService {
   RxInt updateNotifier = RxInt(0);
 
   final _isDebug = false.obs;
-  set isDebug(bool value) => _isDebug.value = value;
+  set isDebug(bool value) {
+    _isDebug.value = value;
+    _inputService.isDebug = value;
+  }
+
   bool get isDebug => _isDebug.value;
 
-  InputConfig();
+  KeyboardInputConfig(this._inputService);
 
   /// Loads the configuration from the shared preferences.
   /// Must be called before using the configuration.
-  Future<InputConfig> load() async {
+  Future<KeyboardInputConfig> load() async {
     final prefs = await _prefs;
     _cursorSpeed = prefs.getDouble('cursorSpeed') ?? cursorSpeed;
     _cursorAcceleration = prefs.getDouble('cursorAcceleration') ?? cursorAcceleration;

@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:remotecontrol_lib/virtualkeys.dart';
 import 'package:win32/win32.dart';
 
-Future<int> mouseClick(MBWrapper key, {int interval = 20}) async {
+Future<int> mouseClick(MouseButton key, {int interval = 20}) async {
   final mouse = calloc<INPUT>();
 
   mouse.ref.type = INPUT_MOUSE;

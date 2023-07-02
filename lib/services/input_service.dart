@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:grpc/grpc.dart';
+import 'package:remotecontrol_lib/client.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/proto/input.pbgrpc.dart' as pb;
 import 'package:remotecontrol_lib/virtualkeys.dart';
@@ -8,76 +9,48 @@ import 'input_config.dart';
 import 'win32_input_service.dart';
 
 /// Provides implementation for protobuf [pb.InputMethodsServiceBase] methods
-/// Delegates handling to [Win32InputService] using settings from [InputConfig]
-/// DI Dependencies: [InputConfig]
+/// Delegates handling to [Win32InputService] using settings from [KeyboardInputConfig]
+/// DI Dependencies: [KeyboardInputConfig]
 class InputMethodsService extends pb.InputMethodsServiceBase {
   final Logger _logger;
-  final Win32InputService systemInputService;
-  final InputConfig config = Get.find<InputConfig>();
-
-  get isDebug => config.isDebug;
+  final KeyboardInputService keyboardInputService = Get.find<KeyboardInputService>();
+  final KeyboardInputConfig config = Get.find<KeyboardInputConfig>();
 
   // TODO: implement modifiers
   final activeModifiers = <int>[];
 
-  InputMethodsService(this._logger, this.systemInputService);
+  InputMethodsService(this._logger);
 
   /* region Behavior */
   @override
   Future<pb.Response> pressKey(ServiceCall call, pb.Key request) async {
-    systemInputService.isDebug = config.isDebug;
+    final actionType = pbToKeyActionType(request.type);
+    final virtualKey = request.id;
+    final options = request.hasOptions() ? KeyOptions.fromPb(request.options) : null;
 
-    _logger.info('Key pressed: ${vkToKey(request.id)} - action: ${request.type}');
+    final result = await keyboardInputService.pressKey(virtualKey, actionType, options);
 
-    if (request.type == pb.Key_KeyActionType.PRESS) {
-      var result = systemInputService.sendVirtualKey(
-        request.id,
-        interval: config.keyPressInterval,
-      );
-      return pb.Response()..message = result.toString();
-    }
-
-    var result = systemInputService.sendKeyState(
-      request.id,
-      pbToKeyActionType(request.type),
-    );
+    _logger.info(
+        'Key pressed: ${vkToKey(request.id)} - action: ${request.type} ${options?.toString()}');
 
     return pb.Response()..message = result.toString();
   }
 
   @override
   Future<pb.Response> moveMouse(ServiceCall call, pb.MouseMove request) async {
-    systemInputService.isDebug = config.isDebug;
+    var result = await keyboardInputService.moveMouse(request.x, request.y);
 
-    // _logger.trace('Mouse moved: ${request.x}, ${request.y}');
-    var result = systemInputService.moveMouseRelative(
-      request.x,
-      request.y,
-      speed: config.cursorSpeed,
-      acceleration: config.cursorAcceleration,
-    );
     return pb.Response()..message = result.toString();
   }
 
   @override
   Future<pb.Response> pressMouseKey(ServiceCall call, pb.MouseKey request) async {
-    systemInputService.isDebug = config.isDebug;
+    final buttonType = MouseButtonType.values[request.id];
+    final button = MouseButton.fromMouseButton(buttonType);
+    final actionType = pbToButtonActionType(request.type);
 
-    MouseButtonType button = MouseButtonType.values[request.id];
-
-    if (request.type == pb.MouseKey_KeyActionType.PRESS) {
-      MBWrapper key = MBWrapper.fromMouseButton(button);
-      var result = systemInputService.pressMouseKey(
-        key,
-        interval: config.keyPressInterval,
-      );
-      return pb.Response()..message = result.toString();
-    }
-
-    var result = systemInputService.sendMouseKeyState(
-      MBWrapper.fromMouseButton(button),
-      pbToButtonActionType(request.type),
-    );
+    final result = await keyboardInputService.pressMouseButton(button, actionType);
+    _logger.info('Mouse button pressed: $buttonType - action: ${request.type}');
 
     return pb.Response()..message = result.toString();
   }

@@ -11,6 +11,7 @@ import 'package:system_theme/system_theme.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'services/win32_input_service.dart';
 import 'theme.dart';
 
 const String appTitle = 'Remote Input Server';
@@ -39,7 +40,11 @@ void main() async {
   logger.subscribe(Level.trace, (_, message) => print(message));
 
   // Provide the dependencies via GetX.
-  Get.put(await InputConfig().load());
+  var inputService = Win32InputService();
+  Get.put(inputService);
+  var inputConfig = await KeyboardInputConfig(inputService).load();
+  Get.put(inputConfig);
+  Get.put(KeyboardInputService(inputService, inputConfig));
 
   if (isDesktop) {
     await flutter_acrylic.Window.initialize();

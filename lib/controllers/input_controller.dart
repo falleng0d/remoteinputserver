@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:get/get.dart';
 import 'package:grpc/grpc.dart';
 import 'package:remotecontrol_lib/logger.dart';
 
@@ -13,7 +14,7 @@ class InputServerController {
   Server? _server;
   int _port;
   ServerStatus _status = ServerStatus.offline;
-  final Win32InputService _inputService = Win32InputService();
+  final Win32InputService _inputService = Get.find<Win32InputService>();
   final Logger _logger;
   late InternetAddress _address;
   final Map<InputEventHandler, dynamic> _debugEventHandlers = {};
@@ -38,7 +39,7 @@ class InputServerController {
 
   Future<void> listen() async {
     _server = Server(
-      [InputMethodsService(_logger, _inputService)],
+      [InputMethodsService(_logger)],
       <Interceptor>[buildLoggingMiddleware(_logger)],
       CodecRegistry(codecs: const [GzipCodec()]),
     );

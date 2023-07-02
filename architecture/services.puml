@@ -1,0 +1,49 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+abstract class AbstractList
+abstract AbstractCollection
+interface List
+interface Collection
+
+List <|-- AbstractList
+Collection <|-- AbstractCollection
+
+Collection <|- List
+AbstractCollection <|- AbstractList
+AbstractList <|-- ArrayList
+
+class ArrayList {
+Object[] elementData
+size()
+}
+
+enum TimeUnit {
+DAYS
+HOURS
+MINUTES
+}
+
+'end example
+@enduml
+
+@startuml
+
+class KeyboardInputConfig
+class Win32InputService
+class KeyboardInputService
+class InputMethodsService
+class InputServerController
+
+KeyboardInputService *-- Win32InputService
+KeyboardInputService *-- KeyboardInputConfig
+
+InputMethodsService *-- KeyboardInputService
+InputServerController *-- KeyboardInputConfig
+
+KeyboardInputConfig *-- Win32InputService
+
+InputServerController *-- Win32InputService
+InputServerController *-- InputMethodsService
+
+@enduml
