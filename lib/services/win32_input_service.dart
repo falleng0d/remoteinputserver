@@ -104,8 +104,8 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
 
   Future<int> moveMouseRelative(double deltaX, double deltaY,
       {double speed = 1.0, double acceleration = 1.0}) async {
-    double adjustedDeltaX = applyMouseCurve(deltaX, speed, acceleration, 0);
-    double adjustedDeltaY = applyMouseCurve(deltaY, speed, acceleration, 1);
+    double adjustedDeltaX = applyExponentialMouseCurve(deltaX, speed, acceleration, 0);
+    double adjustedDeltaY = applyExponentialMouseCurve(deltaY, speed, acceleration, 1);
 
     if (isDebug) {
       var event = MouseMoveReceivedData(
@@ -189,10 +189,11 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
     return result;
   }
 
-  /// [applyMouseCurve] applies a curve to smooth out mouse movement.
+  /// [applyExponentialMouseCurve] applies a curve to smooth out mouse movement.
   /// the [axis] parameter is used to determine which axis to apply the curve to.
   /// 0 = X, 1 = Y
-  double applyMouseCurve(double delta, double speed, double acceleration, int axis) {
+  double applyExponentialMouseCurve(
+      double delta, double speed, double acceleration, int axis) {
     double adjustedDelta = delta * speed * (65535.0 / GetSystemMetrics(SM_CXSCREEN));
     adjustedDelta = adjustedDelta.sign * pow(adjustedDelta.abs(), acceleration);
     return adjustedDelta;
