@@ -50,7 +50,6 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
     final actionType = pbToButtonActionType(request.type);
 
     final result = await keyboardInputService.pressMouseButton(button, actionType);
-    _logger.info('Mouse button pressed: $buttonType - action: ${request.type}');
 
     return pb.Response()..message = result.toString();
   }

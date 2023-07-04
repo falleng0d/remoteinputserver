@@ -34,7 +34,7 @@ class _CursorPreviewState extends State<CursorPreview> {
         break;
       case MouseButtonReceivedData:
         var d = data as MouseButtonReceivedData;
-        logger.trace("Mouse key pressed: ${d.key} ${d.state ?? ''}");
+        logger.trace("Mouse key pressed: ${d.key} ${d.state ?? 'PRESS'}");
         setState(() {
           actionType = d.state ?? ButtonActionType.PRESS;
         });

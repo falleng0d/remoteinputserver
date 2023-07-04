@@ -151,6 +151,8 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
   @override
   void onWindowClose() async {
     bool isPreventClose = await windowManager.isPreventClose();
+
+    // ignore: use_build_context_synchronously
     if (!context.mounted) return;
 
     if (isPreventClose) {
