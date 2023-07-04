@@ -48,7 +48,7 @@ class _LogBoxState extends State<LogBox> {
   void initState() {
     super.initState();
 
-    if (_logHandlder != null) {
+    if (_logHandlder == null) {
       _logHandlder = (_, message) => log(message);
       logger.subscribe(Level.trace, _logHandlder!);
     }
@@ -119,7 +119,7 @@ class _LogBoxState extends State<LogBox> {
     );
   }
 
-  Color uncheckedInputColor(ThemeData style, Set<ButtonStates> states) {
+  Color uncheckedInputColor(FluentThemeData style, Set<ButtonStates> states) {
     if (style.brightness == Brightness.light) {
       if (isScrollToEnd) return const Color(0xFF221D08).withOpacity(0.155);
       if (states.isDisabled) return style.disabledColor;
