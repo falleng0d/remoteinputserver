@@ -3,7 +3,6 @@ import 'dart:ffi';
 import 'dart:math';
 
 import 'package:ffi/ffi.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:remotecontrol/services/win32_input.dart';
 import 'package:remotecontrol_lib/client.dart';
