@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:remotecontrol/services/win32_input.dart';
 import 'package:remotecontrol_lib/client.dart';
+import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/mixin/subscribable.dart';
 import 'package:remotecontrol_lib/virtualkeys.dart';
 import 'package:win32/win32.dart';
@@ -69,11 +70,12 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
   bool isDebug = false;
 
   Future<int> sendVirtualKey(int virtualKeyCode, {int interval = 20}) async {
-    if (isDebug) {
-      var event = KeyboardKeyReceivedData(virtualKeyCode, interval);
-      dispatch(InputReceivedEvent.PressKey, event);
-      return TRUE;
-    }
+    dispatch(
+      InputReceivedEvent.PressKey,
+      KeyboardKeyReceivedData(virtualKeyCode, interval),
+    );
+
+    if (isDebug) return TRUE;
 
     final kbd = calloc<INPUT>();
     kbd.ref.type = INPUT_KEYBOARD;
@@ -81,9 +83,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
 
     var result = SendInput(1, kbd, sizeOf<INPUT>());
     if (result != TRUE) {
-      if (kDebugMode) {
-        print('Error: ${GetLastError()}');
-      }
+      logger.error('[sendVirtualKey] Error: ${GetLastError()}');
       return result;
     }
 
@@ -92,9 +92,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
     kbd.ref.ki.dwFlags = KEYEVENTF_KEYUP;
     result = SendInput(1, kbd, sizeOf<INPUT>());
     if (result != TRUE) {
-      if (kDebugMode) {
-        print('Error: ${GetLastError()}');
-      }
+      logger.error('[sendVirtualKey] Error: ${GetLastError()}');
       return result;
     }
 
@@ -107,12 +105,19 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
     double adjustedDeltaX = applyExponentialMouseCurve(deltaX, speed, acceleration, 0);
     double adjustedDeltaY = applyExponentialMouseCurve(deltaY, speed, acceleration, 1);
 
-    if (isDebug) {
-      var event = MouseMoveReceivedData(
-          deltaX, deltaY, adjustedDeltaX, adjustedDeltaY, speed, acceleration);
-      dispatch(InputReceivedEvent.MoveMouse, event);
-      return TRUE;
-    }
+    dispatch(
+      InputReceivedEvent.MoveMouse,
+      MouseMoveReceivedData(
+        deltaX,
+        deltaY,
+        adjustedDeltaX,
+        adjustedDeltaY,
+        speed,
+        acceleration,
+      ),
+    );
+
+    if (isDebug) return TRUE;
 
     final mouse = calloc<INPUT>();
     mouse.ref.type = INPUT_MOUSE;
@@ -122,9 +127,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
 
     final result = SendInput(1, mouse, sizeOf<INPUT>());
     if (result != TRUE) {
-      if (kDebugMode) {
-        print('Error: ${GetLastError()}');
-      }
+      logger.error('[moveMouseRelative] Error: ${GetLastError()}');
       return result;
     }
 
@@ -133,21 +136,23 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
   }
 
   Future<int> pressMouseKey(MouseButton key, {int interval = 20}) async {
-    if (isDebug) {
-      var event = MouseButtonReceivedData(key, interval);
-      dispatch(InputReceivedEvent.PressMouseKey, event);
-      return TRUE;
-    }
+    dispatch(
+      InputReceivedEvent.PressMouseKey,
+      MouseButtonReceivedData(key, interval),
+    );
+
+    if (isDebug) return TRUE;
 
     return mouseClick(key, interval: interval);
   }
 
   Future<int> sendKeyState(int virtualKeyCode, KeyActionType state) async {
-    if (isDebug) {
-      var event = KeyboardKeyReceivedData(virtualKeyCode, 0, state: state);
-      dispatch(InputReceivedEvent.PressKey, event);
-      return TRUE;
-    }
+    dispatch(
+      InputReceivedEvent.PressKey,
+      KeyboardKeyReceivedData(virtualKeyCode, 0, state: state),
+    );
+
+    if (isDebug) return TRUE;
 
     final kbd = calloc<INPUT>();
     kbd.ref.type = INPUT_KEYBOARD;
@@ -156,9 +161,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
 
     final result = SendInput(1, kbd, sizeOf<INPUT>());
     if (result != TRUE) {
-      if (kDebugMode) {
-        print('Error: ${GetLastError()}');
-      }
+      logger.error('[sendKeyState] Error: ${GetLastError()}');
       return result;
     }
 
@@ -167,21 +170,20 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
   }
 
   Future<int> sendMouseKeyState(MouseButton key, ButtonActionType state) async {
-    if (isDebug) {
-      var event = MouseButtonReceivedData(key, 0, state: state);
-      dispatch(InputReceivedEvent.PressMouseKey, event);
-      return TRUE;
-    }
+    dispatch(
+      InputReceivedEvent.PressMouseKey,
+      MouseButtonReceivedData(key, 0, state: state),
+    );
+
+    if (isDebug) return TRUE;
 
     final mouse = calloc<INPUT>();
     mouse.ref.type = INPUT_MOUSE;
-    mouse.ref.mi.dwFlags = state == KeyActionType.DOWN ? key.keyDown : key.keyUp;
+    mouse.ref.mi.dwFlags = state == ButtonActionType.DOWN ? key.keyDown : key.keyUp;
 
     final result = SendInput(1, mouse, sizeOf<INPUT>());
     if (result != TRUE) {
-      if (kDebugMode) {
-        print('Error: ${GetLastError()}');
-      }
+      logger.error('[sendMouseKeyState] Error: ${GetLastError()}');
       return result;
     }
 
@@ -253,9 +255,7 @@ class KeyboardInputService extends GetxService {
     final keyRepeatDelay = _config.keyRepeatDelay;
 
     keyRepeatTimers[virtualKeyCode] = Timer(keyRepeatDelay, () async {
-      print('repeat $virtualKeyCode in $keyRepeatInterval');
       keyRepeatTimers[virtualKeyCode] = Timer.periodic(keyRepeatInterval, (timer) async {
-        print('repeat $virtualKeyCode');
         await _inputService.sendVirtualKey(
           virtualKeyCode,
           interval: _config.keyPressInterval,
