@@ -190,21 +190,19 @@ class _ServerPageState extends State<ServerPage> {
             children: [const Text("Log"), buildServerIpClippable()],
           ),
           const Gap(5),
-          Obx(() => !config.isDebug
-              ? const Expanded(child: LogBox())
-              : SplitContainer(
-                  direction: Direction.vertical,
-                  expandRight: false,
-                  left: const LogBox(),
-                  right: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: CursorPreview(server: _server)),
-                      Expanded(child: KeyHistoryPreview(server: _server)),
-                    ],
-                  ),
-                )),
+          SplitContainer(
+            direction: Direction.vertical,
+            expandRight: false,
+            left: const LogBox(),
+            right: Column(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: CursorPreview(server: _server)),
+                Expanded(child: KeyHistoryPreview(server: _server)),
+              ],
+            ),
+          ),
         ],
       ),
     );
