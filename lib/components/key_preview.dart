@@ -1,4 +1,5 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:get/get.dart';
 import 'package:remotecontrol_lib/virtualkeys.dart';
 
 import '../controllers/input_controller.dart';
@@ -18,6 +19,20 @@ class _KbdKey {
   String toString() => label;
 }
 
+class _MbButton {
+  final MouseButton button;
+  final ButtonActionType? _state;
+
+  get state => _state != null ? '_$_state' : null;
+
+  get label => "MB${button.toString().split('.').last.substring(0, 1)}";
+
+  _MbButton(this.button, {ButtonActionType? state}) : _state = state;
+
+  @override
+  String toString() => label;
+}
+
 class KeyHistoryPreview extends StatefulWidget {
   final InputServerController server;
 
@@ -28,7 +43,7 @@ class KeyHistoryPreview extends StatefulWidget {
 }
 
 class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
-  List<_KbdKey> keys = [];
+  List<Object> keys = [];
 
   @override
   initState() {
@@ -48,6 +63,15 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
           }
         });
         break;
+      case MouseButtonReceivedData:
+        var d = data as MouseButtonReceivedData;
+        setState(() {
+          // add to front of list
+          keys.insert(0, _MbButton(d.key, state: d.state));
+          if (keys.length > 10) {
+            keys.removeLast();
+          }
+        });
     }
   }
 
@@ -57,20 +81,31 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
     widget.server.clearDebugEventHandler(inputEventHandler);
   }
 
-  Widget buildKey(_KbdKey key) {
+  Widget buildKey(BuildContext context, Object key) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       margin: const EdgeInsets.symmetric(horizontal: 4),
       constraints: const BoxConstraints(maxWidth: 40),
       decoration: BoxDecoration(
         color: () {
-          switch (key._state) {
-            case KeyActionType.DOWN:
-              return Colors.red;
-            case KeyActionType.UP:
-              return Colors.green;
-            default:
-              return Colors.blue;
+          if (key is _KbdKey) {
+            switch (key._state) {
+              case KeyActionType.DOWN:
+                return Colors.red;
+              case KeyActionType.UP:
+                return Colors.green;
+              default:
+                return Colors.blue;
+            }
+          } else if (key is _MbButton) {
+            switch (key._state) {
+              case ButtonActionType.DOWN:
+                return Colors.red;
+              case ButtonActionType.UP:
+                return Colors.green;
+              default:
+                return Colors.blue;
+            }
           }
         }(),
         borderRadius: BorderRadius.circular(4),
@@ -78,7 +113,11 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
       child: Center(
         child: Text(
           key.toString(),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize:
+                key.toString().length >= 3 ? 10 : context.textTheme.bodyMedium?.fontSize,
+          ),
         ),
       ),
     );
@@ -98,7 +137,7 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
                 child: ListView.builder(
                   itemCount: keys.length,
                   scrollDirection: Axis.horizontal,
-                  itemBuilder: (context, index) => buildKey(keys[index]),
+                  itemBuilder: (context, index) => buildKey(context, keys[index]),
                 ),
               ),
               const Spacer(),
