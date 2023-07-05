@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:remotecontrol/services/win32_input_service.dart';
+import 'package:remotecontrol_lib/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class KeyboardInputConfig extends GetxService {
@@ -36,10 +37,10 @@ class KeyboardInputConfig extends GetxService {
   /// Must be called before using the configuration.
   Future<KeyboardInputConfig> load() async {
     final prefs = await _prefs;
-    _cursorSpeed = prefs.getDouble('cursorSpeed') ?? cursorSpeed;
-    _cursorAcceleration = prefs.getDouble('cursorAcceleration') ?? cursorAcceleration;
-    _keyPressInterval = prefs.getInt('keyPressInterval') ?? keyPressInterval;
     _initialized = true;
+    setCursorSpeed(prefs.getDouble('cursorSpeed') ?? cursorSpeed);
+    setCursorAcceleration(prefs.getDouble('cursorAcceleration') ?? cursorAcceleration);
+    _keyPressInterval = prefs.getInt('keyPressInterval') ?? keyPressInterval;
     return this;
   }
 
@@ -50,6 +51,14 @@ class KeyboardInputConfig extends GetxService {
   Future<bool> setCursorSpeed(double speed) async {
     if (!(_initialized)) throw Exception('_prefs not initialized!');
     final prefs = await _prefs;
+    if (speed < 0) {
+      logger.error("Speed must be greater than 0");
+      return false;
+    }
+    if (speed > 2) {
+      logger.error("Speed must be less than 2");
+      return false;
+    }
     if (await prefs.setDouble('cursorSpeed', speed)) {
       _cursorSpeed = speed;
       notify();
@@ -63,6 +72,14 @@ class KeyboardInputConfig extends GetxService {
   Future<bool> setCursorAcceleration(double acceleration) async {
     if (!(_initialized)) throw Exception('_prefs not initialized!');
     final prefs = await _prefs;
+    if (acceleration < 0) {
+      logger.error("Acceleration must be greater than 0");
+      return false;
+    }
+    if (acceleration > 2) {
+      logger.error("Acceleration must be less than 2");
+      return false;
+    }
     if (await prefs.setDouble('cursorAcceleration', acceleration)) {
       _cursorAcceleration = acceleration;
       notify();
