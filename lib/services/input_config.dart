@@ -13,7 +13,7 @@ class KeyboardInputConfig extends GetxService {
   int _keyPressInterval = 50;
 
   // 1s
-  Duration keyRepeatDelay = const Duration(milliseconds: 500);
+  Duration keyRepeatDelay = const Duration(milliseconds: 300);
   // 15hz
   Duration keyRepeatInterval = const Duration(milliseconds: 1000 ~/ 15);
 
