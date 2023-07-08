@@ -253,6 +253,10 @@ class KeyboardInputService extends GetxService {
     final keyRepeatInterval = _config.keyRepeatInterval;
     final keyRepeatDelay = _config.keyRepeatDelay;
 
+    if (keyRepeatTimers.containsKey(virtualKeyCode)) {
+      keyRepeatTimers[virtualKeyCode]?.cancel();
+    }
+
     keyRepeatTimers[virtualKeyCode] = Timer(keyRepeatDelay, () async {
       keyRepeatTimers[virtualKeyCode] = Timer.periodic(keyRepeatInterval, (timer) async {
         await _inputService.sendVirtualKey(
