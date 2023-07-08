@@ -20,24 +20,30 @@ class _LogBoxState extends State<LogBox> {
 
     setState(() {
       _logController.text = '${_logController.text}$message\n';
+      // keep at maximum 500 lines of text
+      final lines = _logController.text.split('\n');
+      if (lines.length > 500) {
+        _logController.text = lines.skip(lines.length - 400).join('\n');
+      }
 
       if (isScrollToEnd && _scrollController.hasClients) {
-        Future.delayed(const Duration(milliseconds: 10), () {
-          _scrollToEnd();
+        Future.delayed(const Duration(milliseconds: 10), () async {
+          // TODO: Disable text selection when scrolling
+          await _scrollToEnd();
         });
         _logHandlder = (_, message) => log(message);
       }
     });
   }
 
-  Future<void> _scrollToEnd() {
+  Future<void> _scrollToEnd() async {
     if (_scrollController.hasClients) {
       var maxScroll = _scrollController.position.maxScrollExtent;
-      return _scrollController.animateTo(maxScroll,
+      await _scrollController.animateTo(maxScroll,
           duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
     }
 
-    return Future.value();
+    return;
   }
 
   _LogBoxState() {
