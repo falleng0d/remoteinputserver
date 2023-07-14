@@ -24,10 +24,6 @@ class KeyboardInputConfig extends GetxService {
   RxInt updateNotifier = RxInt(0);
 
   final _isDebug = false.obs;
-  set isDebug(bool value) {
-    _isDebug.value = value;
-    _inputService.isDebug = value;
-  }
 
   bool get isDebug => _isDebug.value;
 
@@ -40,6 +36,7 @@ class KeyboardInputConfig extends GetxService {
     _initialized = true;
     setCursorSpeed(prefs.getDouble('cursorSpeed') ?? cursorSpeed);
     setCursorAcceleration(prefs.getDouble('cursorAcceleration') ?? cursorAcceleration);
+    setDebug(prefs.getBool('debug') ?? isDebug);
     _keyPressInterval = prefs.getInt('keyPressInterval') ?? keyPressInterval;
     return this;
   }
@@ -95,6 +92,20 @@ class KeyboardInputConfig extends GetxService {
     final prefs = await _prefs;
     if (await prefs.setInt('keyPressInterval', interval)) {
       _keyPressInterval = interval;
+      notify();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  Future<bool> setDebug(bool debug) async {
+    if (!(_initialized)) throw Exception('_prefs not initialized!');
+    final prefs = await _prefs;
+    if (await prefs.setBool('debug', debug)) {
+      _isDebug.value = debug;
+      _inputService.isDebug = debug;
       notify();
 
       return true;

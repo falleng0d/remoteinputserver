@@ -47,7 +47,6 @@ class _ServerPageState extends State<ServerPage> {
   @override
   void initState() {
     super.initState();
-    config.isDebug = true;
     _startServer(_defaultPort);
   }
 
@@ -125,7 +124,7 @@ class _ServerPageState extends State<ServerPage> {
       child: Obx(() => ToggleSwitch(
           checked: config.isDebug,
           onChanged: (value) {
-            config.isDebug = value;
+            config.setDebug(value);
             logger.trace("Debug mode: ${config.isDebug}");
           })),
     );
@@ -214,30 +213,31 @@ class _ServerPageState extends State<ServerPage> {
     final padding = PageHeader.horizontalPadding(context);
 
     return ScaffoldPage(
-        header: buildHeader(padding),
-        bottomBar: buildBottomBar(padding),
-        content: Container(
-          constraints: const BoxConstraints.expand(),
-          padding: EdgeInsets.only(
-            top: kPageDefaultVerticalPadding,
-            right: padding,
-            left: padding,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  buildPortTextInput(),
-                  buildDebugModeToggle(),
-                ],
-              ),
-              const Gap(10),
-              buildLogSection(),
-            ],
-          ),
-        ));
+      header: buildHeader(padding),
+      bottomBar: buildBottomBar(padding),
+      content: Container(
+        constraints: const BoxConstraints.expand(),
+        padding: EdgeInsets.only(
+          top: kPageDefaultVerticalPadding,
+          right: padding,
+          left: padding,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                buildPortTextInput(),
+                buildDebugModeToggle(),
+              ],
+            ),
+            const Gap(10),
+            buildLogSection(),
+          ],
+        ),
+      ),
+    );
   }
 }
