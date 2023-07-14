@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:remotecontrol/components/cursor_box.dart';
 import 'package:remotecontrol_lib/logger.dart';
@@ -5,6 +7,7 @@ import 'package:remotecontrol_lib/virtualkeys.dart';
 
 import '../controllers/input_controller.dart';
 import '../services/win32_input_service.dart';
+import 'measure_size.dart';
 
 class CursorPreview extends StatefulWidget {
   final InputServerController server;
@@ -18,6 +21,7 @@ class CursorPreview extends StatefulWidget {
 class _CursorPreviewState extends State<CursorPreview> {
   double x = 0;
   double y = 0;
+  Size size = Size.zero;
   ButtonActionType actionType = ButtonActionType.PRESS;
 
   @override
@@ -60,8 +64,8 @@ class _CursorPreviewState extends State<CursorPreview> {
 
   void moveCursor(double x, double y) {
     setState(() {
-      this.x += x / 10;
-      this.y += y / 10;
+      this.x = min(size.width / 2, max(this.x + (x / 10), -size.width / 2));
+      this.y = min(size.height / 2, max(this.y + (y / 10), -size.height / 2));
     });
   }
 
@@ -73,6 +77,15 @@ class _CursorPreviewState extends State<CursorPreview> {
 
   @override
   Widget build(BuildContext context) {
-    return CursorBox(x: x, y: y, cursorColor: stateToColor(actionType));
+    // x > -(width/2) and x < width/2
+
+    return MeasureSize(
+      onChange: (size) {
+        setState(() {
+          this.size = size;
+        });
+      },
+      child: CursorBox(x: x, y: y, cursorColor: stateToColor(actionType)),
+    );
   }
 }
