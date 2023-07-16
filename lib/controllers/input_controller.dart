@@ -44,7 +44,13 @@ class InputServerController {
       codecRegistry: CodecRegistry(codecs: const [GzipCodec()]),
     );
 
-    await _server?.serve(port: _port);
+    try {
+      await _server?.serve(port: _port);
+    } on SocketException catch (e) {
+      _logger.error('Failed to start server: $e');
+      await stop();
+      rethrow;
+    }
 
     _status = ServerStatus.online;
     _logger.info('Remote input server listening on port $_port');

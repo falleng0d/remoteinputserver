@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
@@ -69,10 +71,17 @@ class _ServerPageState extends State<ServerPage> {
     }
   }
 
-  void _startServer(int port) {
+  void _startServer(int port) async {
     if (_serverSatus == ServerStatus.offline) {
       _server.port = port;
-      _server.listen();
+      try {
+        await _server.listen();
+      } on SocketException {
+        setState(() {
+          _serverSatus = ServerStatus.offline;
+        });
+        return;
+      }
       setState(() {
         _serverSatus = ServerStatus.online;
       });

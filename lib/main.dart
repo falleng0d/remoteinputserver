@@ -17,6 +17,9 @@ import 'theme.dart';
 
 const String appTitle = 'Remote Input Server';
 
+const double DEFAULT_WIDTH = 545;
+const double DEFAULT_HEIGHT = 545;
+
 /// Checks if the current environment is a desktop environment.
 bool get isDesktop {
   if (kIsWeb) return false;
@@ -36,11 +39,46 @@ void main() async {
     SystemTheme.accentColor;
   }
 
+  if (isDesktop) {
+    await initWindow(prefs);
+  }
+
   setPathUrlStrategy();
 
-  // Initialize the logger.
   logger.subscribe(Level.trace, (_, message) => print(message));
 
+  await initDependencies(prefs);
+
+  runApp(const MyApp());
+}
+
+Future<void> initWindow(SharedPreferences prefs) async {
+  await flutter_acrylic.Window.initialize();
+  await WindowManager.instance.ensureInitialized();
+  windowManager.waitUntilReadyToShow().then((_) async {
+    await windowManager.setTitleBarStyle(
+      TitleBarStyle.hidden,
+      windowButtonVisibility: false,
+    );
+
+    // Load position and size from prefs
+    final width = prefs.getDouble('width') ?? DEFAULT_WIDTH;
+    final height = prefs.getDouble('height') ?? DEFAULT_HEIGHT;
+
+    final x = prefs.getDouble('x');
+    final y = prefs.getDouble('y');
+    if (x != null && y != null) await windowManager.setPosition(Offset(x, y));
+
+    await windowManager.setSize(Size(width, height));
+    await windowManager.setMinimumSize(const Size(DEFAULT_WIDTH, DEFAULT_HEIGHT));
+
+    await windowManager.setPreventClose(true);
+    await windowManager.setSkipTaskbar(false);
+    await windowManager.show();
+  });
+}
+
+Future<void> initDependencies(SharedPreferences prefs) async {
   // Provide the dependencies via GetX.
   final inputService = Win32InputService();
   Get.put(inputService);
@@ -49,24 +87,6 @@ void main() async {
   Get.put(inputConfig);
 
   Get.put(KeyboardInputService(inputService, inputConfig));
-
-  if (isDesktop) {
-    await flutter_acrylic.Window.initialize();
-    await WindowManager.instance.ensureInitialized();
-    windowManager.waitUntilReadyToShow().then((_) async {
-      await windowManager.setTitleBarStyle(
-        TitleBarStyle.hidden,
-        windowButtonVisibility: false,
-      );
-      await windowManager.setSize(const Size(545, 545));
-      await windowManager.setMinimumSize(const Size(545, 545));
-      await windowManager.show();
-      await windowManager.setPreventClose(true);
-      await windowManager.setSkipTaskbar(false);
-    });
-  }
-
-  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -134,17 +154,18 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with WindowListener {
   bool value = false;
   int index = 0;
+  late SharedPreferences prefs;
 
   final settingsController = ScrollController();
 
   @override
   void initState() {
-    windowManager.addListener(this);
-    super.initState();
+    Future.sync(() async {
+      prefs = await SharedPreferences.getInstance();
+      windowManager.addListener(this);
+    });
 
-    /*Timer mytimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      logger.trace('Timer tick');
-    });*/
+    super.initState();
   }
 
   @override
@@ -187,6 +208,22 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
         },
       );
     }
+  }
+
+  @override
+  void onWindowMoved() {
+    WindowManager.instance.getPosition().then((value) {
+      prefs.setDouble('x', value.dx);
+      prefs.setDouble('y', value.dy);
+    });
+  }
+
+  @override
+  void onWindowResized() {
+    WindowManager.instance.getSize().then((value) {
+      prefs.setDouble('width', value.width);
+      prefs.setDouble('height', value.height);
+    });
   }
 
   NavigationAppBar buildNavigationAppBar() {

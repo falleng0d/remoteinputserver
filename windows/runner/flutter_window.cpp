@@ -14,6 +14,8 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
 
+  ShowWindow(Win32Window::GetHandle(), SW_HIDE);
+
   RECT frame = GetClientArea();
 
   // The size here must match the window dimensions to avoid unnecessary surface
