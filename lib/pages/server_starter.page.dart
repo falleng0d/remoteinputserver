@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:remotecontrol_lib/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../components/cursor_preview.dart';
 import '../components/info_label.dart';
@@ -49,7 +50,7 @@ class _ServerPageState extends State<ServerPage> {
   @override
   void initState() {
     super.initState();
-    _startServer(_defaultPort);
+    _init();
   }
 
   @override
@@ -59,6 +60,22 @@ class _ServerPageState extends State<ServerPage> {
     }
     _portController.dispose();
     super.dispose();
+  }
+
+  void _init() async {
+    final settings = await SharedPreferences.getInstance();
+    final port = settings.getInt('port') ?? _defaultPort;
+
+    _portController.text = port.toString();
+
+    _portController.addListener(() {
+      final port = int.tryParse(_portController.text);
+      if (port != null) {
+        settings.setInt('port', port);
+      }
+    });
+
+    _startServer(port);
   }
 
   void _stopServer() {
