@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class KeyboardInputConfig extends GetxService {
   final Win32InputService _inputService;
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  final SharedPreferences _prefs;
   bool _initialized = false;
 
   double _cursorSpeed = 1.0;
@@ -27,17 +27,16 @@ class KeyboardInputConfig extends GetxService {
 
   bool get isDebug => _isDebug.value;
 
-  KeyboardInputConfig(this._inputService);
+  KeyboardInputConfig(this._inputService, this._prefs);
 
   /// Loads the configuration from the shared preferences.
   /// Must be called before using the configuration.
   Future<KeyboardInputConfig> load() async {
-    final prefs = await _prefs;
     _initialized = true;
-    setCursorSpeed(prefs.getDouble('cursorSpeed') ?? cursorSpeed);
-    setCursorAcceleration(prefs.getDouble('cursorAcceleration') ?? cursorAcceleration);
-    setDebug(prefs.getBool('debug') ?? isDebug);
-    _keyPressInterval = prefs.getInt('keyPressInterval') ?? keyPressInterval;
+    setCursorSpeed(_prefs.getDouble('cursorSpeed') ?? cursorSpeed);
+    setCursorAcceleration(_prefs.getDouble('cursorAcceleration') ?? cursorAcceleration);
+    setDebug(_prefs.getBool('debug') ?? isDebug);
+    _keyPressInterval = _prefs.getInt('keyPressInterval') ?? keyPressInterval;
     return this;
   }
 
@@ -47,7 +46,6 @@ class KeyboardInputConfig extends GetxService {
 
   Future<bool> setCursorSpeed(double speed) async {
     if (!(_initialized)) throw Exception('_prefs not initialized!');
-    final prefs = await _prefs;
     if (speed < 0) {
       logger.error("Speed must be greater than 0");
       return false;
@@ -56,7 +54,7 @@ class KeyboardInputConfig extends GetxService {
       logger.error("Speed must be less than 2");
       return false;
     }
-    if (await prefs.setDouble('cursorSpeed', speed)) {
+    if (await _prefs.setDouble('cursorSpeed', speed)) {
       _cursorSpeed = speed;
       notify();
 
@@ -68,7 +66,6 @@ class KeyboardInputConfig extends GetxService {
 
   Future<bool> setCursorAcceleration(double acceleration) async {
     if (!(_initialized)) throw Exception('_prefs not initialized!');
-    final prefs = await _prefs;
     if (acceleration < 0) {
       logger.error("Acceleration must be greater than 0");
       return false;
@@ -77,7 +74,7 @@ class KeyboardInputConfig extends GetxService {
       logger.error("Acceleration must be less than 2");
       return false;
     }
-    if (await prefs.setDouble('cursorAcceleration', acceleration)) {
+    if (await _prefs.setDouble('cursorAcceleration', acceleration)) {
       _cursorAcceleration = acceleration;
       notify();
 
@@ -89,8 +86,7 @@ class KeyboardInputConfig extends GetxService {
 
   Future<bool> setKeyPressInterval(int interval) async {
     if (!(_initialized)) throw Exception('_prefs not initialized!');
-    final prefs = await _prefs;
-    if (await prefs.setInt('keyPressInterval', interval)) {
+    if (await _prefs.setInt('keyPressInterval', interval)) {
       _keyPressInterval = interval;
       notify();
 
@@ -102,8 +98,7 @@ class KeyboardInputConfig extends GetxService {
 
   Future<bool> setDebug(bool debug) async {
     if (!(_initialized)) throw Exception('_prefs not initialized!');
-    final prefs = await _prefs;
-    if (await prefs.setBool('debug', debug)) {
+    if (await _prefs.setBool('debug', debug)) {
       _isDebug.value = debug;
       _inputService.isDebug = debug;
       notify();

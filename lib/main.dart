@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:remotecontrol/pages/server_starter.page.dart';
 import 'package:remotecontrol/services/input_config.dart';
 import 'package:remotecontrol_lib/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:window_manager/window_manager.dart';
@@ -28,6 +29,7 @@ bool get isDesktop {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences prefs = await SharedPreferences.getInstance();
 
   if (kIsWeb ||
       [TargetPlatform.windows, TargetPlatform.android].contains(defaultTargetPlatform)) {
@@ -40,18 +42,22 @@ void main() async {
   logger.subscribe(Level.trace, (_, message) => print(message));
 
   // Provide the dependencies via GetX.
-  var inputService = Win32InputService();
+  final inputService = Win32InputService();
   Get.put(inputService);
-  var inputConfig = await KeyboardInputConfig(inputService).load();
+
+  final inputConfig = await KeyboardInputConfig(inputService, prefs).load();
   Get.put(inputConfig);
+
   Get.put(KeyboardInputService(inputService, inputConfig));
 
   if (isDesktop) {
     await flutter_acrylic.Window.initialize();
     await WindowManager.instance.ensureInitialized();
     windowManager.waitUntilReadyToShow().then((_) async {
-      await windowManager.setTitleBarStyle(TitleBarStyle.hidden,
-          windowButtonVisibility: false);
+      await windowManager.setTitleBarStyle(
+        TitleBarStyle.hidden,
+        windowButtonVisibility: false,
+      );
       await windowManager.setSize(const Size(545, 545));
       await windowManager.setMinimumSize(const Size(545, 545));
       await windowManager.show();
