@@ -38,10 +38,10 @@ class InputServerController {
   }
 
   Future<void> listen() async {
-    _server = Server(
-      [InputMethodsService(_logger)],
-      <Interceptor>[buildLoggingMiddleware(_logger)],
-      CodecRegistry(codecs: const [GzipCodec()]),
+    _server = Server.create(
+      services: [InputMethodsService(_logger)],
+      interceptors: <Interceptor>[buildLoggingMiddleware(_logger)],
+      codecRegistry: CodecRegistry(codecs: const [GzipCodec()]),
     );
 
     await _server?.serve(port: _port);
