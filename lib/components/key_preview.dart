@@ -43,7 +43,9 @@ class KeyHistoryPreview extends StatefulWidget {
 }
 
 class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
-  List<Object> keys = [];
+  final List<Object> _keys = [];
+  final List<_KbdKey> _modifiers = [];
+  final KeyboardInputService _kbInputService = Get.find();
 
   @override
   initState() {
@@ -57,22 +59,38 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
         var d = data as KeyboardKeyReceivedData;
         setState(() {
           // add to front of list
-          keys.insert(0, _KbdKey(d.virtualKeyCode, state: d.state));
-          if (keys.length > 10) {
-            keys.removeLast();
+          _keys.insert(0, _KbdKey(d.virtualKeyCode, state: d.state));
+          if (_keys.length > 10) {
+            _keys.removeLast();
           }
         });
+        updateModifiers();
         break;
       case MouseButtonReceivedData:
         var d = data as MouseButtonReceivedData;
         setState(() {
           // add to front of list
-          keys.insert(0, _MbButton(d.key, state: d.state));
-          if (keys.length > 10) {
-            keys.removeLast();
+          _keys.insert(0, _MbButton(d.key, state: d.state));
+          if (_keys.length > 10) {
+            _keys.removeLast();
           }
         });
     }
+  }
+
+  void updateModifiers() {
+    // schedule for 10ms later to allow for keypress to finish
+    Future.delayed(const Duration(milliseconds: 10), () {
+      final pressedModifiers = _kbInputService.modifierStates.values
+          .where((e) => e.state == KeyState.DOWN)
+          .map((e) => _KbdKey(e.vk))
+          .toList();
+
+      setState(() {
+        _modifiers.clear();
+        _modifiers.addAll(pressedModifiers);
+      });
+    });
   }
 
   @override
@@ -81,11 +99,12 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
     widget.server.clearDebugEventHandler(inputEventHandler);
   }
 
-  Widget buildKey(BuildContext context, Object key) {
+  Widget buildKey(BuildContext context, Object key,
+      {double size = 35.0, double fontSm = 8, double fontLg = 14}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      constraints: const BoxConstraints(maxWidth: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      constraints: BoxConstraints(maxWidth: size),
       decoration: BoxDecoration(
         color: () {
           if (key is _KbdKey) {
@@ -115,8 +134,7 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
           key.toString(),
           style: TextStyle(
             color: Colors.white,
-            fontSize:
-                key.toString().length >= 3 ? 10 : context.textTheme.bodyMedium?.fontSize,
+            fontSize: key.toString().length >= 3 ? fontSm : fontLg,
           ),
         ),
       ),
@@ -132,12 +150,27 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
             direction: Axis.vertical,
             children: [
               Container(
-                constraints: const BoxConstraints(maxHeight: 40),
-                margin: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+                constraints: const BoxConstraints(maxHeight: 30),
+                margin: const EdgeInsets.fromLTRB(0, 5, 0, 0),
                 child: ListView.builder(
-                  itemCount: keys.length,
+                  itemCount: _modifiers.length,
                   scrollDirection: Axis.horizontal,
-                  itemBuilder: (context, index) => buildKey(context, keys[index]),
+                  itemBuilder: (context, index) => buildKey(
+                    context,
+                    _modifiers[index],
+                    size: 30,
+                    fontLg: 10,
+                    fontSm: 7,
+                  ),
+                ),
+              ),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 35),
+                margin: const EdgeInsets.fromLTRB(0, 5, 0, 0),
+                child: ListView.builder(
+                  itemCount: _keys.length,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, index) => buildKey(context, _keys[index]),
                 ),
               ),
               const Spacer(),

@@ -10,12 +10,12 @@ class KeyboardInputConfig extends GetxService {
 
   double _cursorSpeed = 1.0;
   double _cursorAcceleration = 1.0;
-  int _keyPressInterval = 50;
+  int _keyPressInterval = 33;
 
   // 1s
   Duration keyRepeatDelay = const Duration(milliseconds: 300);
   // 15hz
-  Duration keyRepeatInterval = const Duration(milliseconds: 1000 ~/ 15);
+  Duration keyRepeatInterval = const Duration(milliseconds: 1000 ~/ 30);
 
   double get cursorSpeed => _cursorSpeed;
   double get cursorAcceleration => _cursorAcceleration;

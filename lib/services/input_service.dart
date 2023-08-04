@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:grpc/grpc.dart';
 import 'package:remotecontrol_lib/client.dart';
+import 'package:remotecontrol_lib/keyboard.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/proto/input.pbgrpc.dart' as pb;
 import 'package:remotecontrol_lib/virtualkeys.dart';
@@ -30,8 +31,24 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
 
     final result = await keyboardInputService.pressKey(virtualKey, actionType, options);
 
-    _logger.info(
-        'Key pressed: ${vkToKey(request.id)} - action: ${request.type} ${options?.toString()}');
+    _logger.info('Key ${request.type}: ${vkToKey(request.id)} ${options?.toString()}');
+
+    return pb.Response()..message = result.toString();
+  }
+
+  @override
+  Future<pb.Response> pressHotkey(ServiceCall call, pb.Hotkey request) async {
+    final actionType = pbToKeyActionType(request.type);
+
+    final hotkey = request.hotkey;
+    final options = request.hasOptions() ? HotkeyOptions.fromPb(request.options) : null;
+
+    final hotkeySteps = stepsFromString(hotkey);
+
+    final result =
+        await keyboardInputService.pressHotkey(hotkey, actionType, hotkeySteps, options);
+
+    _logger.info('Hotkey ${request.type} $hotkey ${options?.toString()}');
 
     return pb.Response()..message = result.toString();
   }

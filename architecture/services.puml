@@ -39,3 +39,31 @@ package app {
 
 
 @enduml
+
+@startuml
+
+class KeyboardElementFactory {
+	- _baseKeyActionFactory
+	- _baseHotkeyActionFactory
+	- _baseMouseButtonActionFactory
+	- _baseMouseMoveActionFactory
+	- _baseToggleActionFactory
+
+	+ buildKeyAction(keyCode)
+	+ buildHotkeyAction(hotkey)
+	+ buildMouseButtonAction(button)
+	+ buildMouseMoveAction()
+	+ buildToggleAction(switchId)
+}
+
+abstract class BaseKeyActionFactory {
+	+ build(keyCode)
+}
+
+class KeyActionFactory extends BaseKeyActionFactory {
+	+ build(keyCode)
+}
+
+KeyboardElementFactory *-- BaseKeyActionFactory
+
+@enduml

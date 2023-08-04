@@ -8,7 +8,9 @@ import 'package:remotecontrol/services/win32_input.dart';
 import 'package:remotecontrol_lib/client.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/mixin/subscribable.dart';
+import 'package:remotecontrol_lib/values/hotkey_steps.dart';
 import 'package:remotecontrol_lib/virtualkeys.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:win32/win32.dart';
 
 import 'input_config.dart';
@@ -190,6 +192,41 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
     return result;
   }
 
+  Map<int, int> getModifierStates() {
+    final modifiers = getModifiers();
+    final modifierStates = <int, int>{};
+
+    for (final vk in modifiers) {
+      final result = GetKeyState(vk);
+      modifierStates[vk] = result;
+    }
+
+    return modifierStates;
+  }
+
+  List<int> getActiveModifiers() {
+    final modifierStates = getModifierStates();
+    final activeModifiers = <int>[];
+
+    for (final vk in modifierStates.keys) {
+      final state = modifierStates[vk]!;
+      if (state < 0) {
+        activeModifiers.add(vk);
+      }
+    }
+
+    return activeModifiers;
+  }
+
+  bool isModifierActive(int vk) {
+    final modifierStates = getModifierStates();
+    if (!modifierStates.containsKey(vk)) {
+      return false;
+    }
+
+    return modifierStates[vk]! < 0;
+  }
+
   /// [applyExponentialMouseCurve] applies a curve to smooth out mouse movement.
   /// the [axis] parameter is used to determine which axis to apply the curve to.
   /// 0 = X, 1 = Y
@@ -199,6 +236,27 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
     adjustedDelta = adjustedDelta.sign * pow(adjustedDelta.abs(), acceleration);
     return adjustedDelta;
   }
+}
+
+class _KeyTracker {
+  final int vk;
+
+  KeyState state;
+  bool suspended = false;
+
+  DateTime? downSince;
+  DateTime? lastKeepAlive;
+
+  _KeyTracker(
+      {required this.vk, required this.state, this.downSince, this.lastKeepAlive});
+}
+
+class _HotkeyTracker {
+  final String hotkey;
+
+  KeyState state;
+
+  _HotkeyTracker({required this.hotkey, required this.state});
 }
 
 /// [KeyboardInputService] is a service that handles keyboard input.
@@ -212,51 +270,134 @@ class KeyboardInputService extends GetxService {
   final Win32InputService _inputService;
   final KeyboardInputConfig _config;
 
-  KeyboardInputService(this._inputService, this._config);
+  Map<int, Timer> keyRepeatTimers = {};
+  Map<int, _KeyTracker> keyStates = {};
+  Map<int, _KeyTracker> modifierStates = {};
+  Map<String, _HotkeyTracker> hotkeyStates = {};
+
+  // Lock synchronizing key presses
+  final _keyLock = Lock();
 
   get isDebug => _config.isDebug;
 
-  Map<int, Timer> keyRepeatTimers = {};
+  KeyboardInputService(this._inputService, this._config);
 
-  void cancelKeyRepeat(int virtualKeyCode) {
+  void _cancelKeyRepeat(int virtualKeyCode) {
     if (keyRepeatTimers.containsKey(virtualKeyCode)) {
       keyRepeatTimers[virtualKeyCode]?.cancel();
       keyRepeatTimers.remove(virtualKeyCode);
     }
   }
 
-  Future<int> pressKey(int virtualKeyCode, KeyActionType keyActionType,
-      [KeyOptions? options]) async {
-    if (keyActionType == KeyActionType.PRESS) {
-      cancelKeyRepeat(virtualKeyCode);
-
-      return _inputService.sendVirtualKey(
-        virtualKeyCode,
-        interval: _config.keyPressInterval,
+  void _keyPressed(int virtualKeyCode) {
+    if (!keyStates.containsKey(virtualKeyCode)) {
+      keyStates[virtualKeyCode] = _KeyTracker(
+        vk: virtualKeyCode,
+        state: KeyState.DOWN,
+        downSince: DateTime.now(),
+        lastKeepAlive: DateTime.now(),
       );
-    } else if (keyActionType == KeyActionType.UP) {
-      cancelKeyRepeat(virtualKeyCode);
 
-      return _inputService.sendKeyState(
-        virtualKeyCode,
-        keyActionType,
-      );
+      if (isModifierKey(virtualKeyCode)) {
+        modifierStates[virtualKeyCode] = keyStates[virtualKeyCode]!;
+      }
+
+      return;
     }
 
-    if (options?.noRepeat == true) {
-      return _inputService.sendKeyState(
-        virtualKeyCode,
-        keyActionType,
-      );
+    final keyState = keyStates[virtualKeyCode]!;
+
+    if (isModifierKey(virtualKeyCode)) {
+      modifierStates[virtualKeyCode] = keyState;
     }
 
-    final keyRepeatInterval = _config.keyRepeatInterval;
-    final keyRepeatDelay = _config.keyRepeatDelay;
+    if (keyState.state == KeyState.DOWN) {
+      keyState.lastKeepAlive = DateTime.now();
 
-    if (keyRepeatTimers.containsKey(virtualKeyCode)) {
-      keyRepeatTimers[virtualKeyCode]?.cancel();
+      return;
     }
 
+    keyState.state = KeyState.DOWN;
+    keyState.downSince = DateTime.now();
+    keyState.lastKeepAlive = DateTime.now();
+  }
+
+  void _keyReleased(int virtualKeyCode) {
+    if (!keyStates.containsKey(virtualKeyCode)) {
+      return;
+    }
+
+    final keyState = keyStates[virtualKeyCode]!;
+
+    if (keyState.state == KeyState.DOWN) {
+      keyState.state = KeyState.UP;
+      keyState.lastKeepAlive = null;
+      keyState.downSince = null;
+    }
+
+    if (isModifierKey(virtualKeyCode)) {
+      modifierStates[virtualKeyCode] = keyStates[virtualKeyCode]!;
+    }
+  }
+
+  bool isKeyPressed(int virtualKeyCode) {
+    return keyStates.containsKey(virtualKeyCode) &&
+        keyStates[virtualKeyCode]!.state == KeyState.DOWN;
+  }
+
+  Future<List<_KeyTracker>> _suspendModifierKeys(
+      List<_KeyTracker> unwantedModifiers) async {
+    return await Future.wait(modifierStates.entries
+        .where((m) => m.value.state == KeyState.DOWN && !m.value.suspended)
+        .map((entry) async {
+      final keyState = entry.value;
+
+      await _inputService.sendKeyState(entry.key, KeyActionType.UP);
+      keyState.suspended = true;
+
+      return keyState;
+    }));
+  }
+
+  Future<List<_KeyTracker>> _resumeModifierKeys(List<_KeyTracker> modifiers) async {
+    return await Future.wait(modifiers.map((keyState) async {
+      if (keyState.suspended) {
+        keyState.suspended = false;
+      }
+
+      if (keyState.state != KeyState.DOWN) {
+        await _inputService.sendKeyState(keyState.vk, KeyActionType.DOWN);
+        keyState.state = KeyState.DOWN;
+      }
+
+      return keyState;
+    }));
+  }
+
+  Future<List<_KeyTracker>> _sendTemporaryModifiers(List<int> modifiers) async {
+    return await Future.wait(modifiers.map((modifier) async {
+      if (modifierStates.containsKey(modifier)) {
+        final modifierState = modifierStates[modifier]!;
+        if (modifierState.state == KeyState.DOWN) {
+          modifierState.lastKeepAlive = DateTime.now();
+          return modifierState;
+        }
+      }
+      await _sendVirtualKey(modifier, KeyActionType.DOWN);
+      return modifierStates[modifier]!;
+    }));
+  }
+
+  Future<List<_KeyTracker>> _disableTemporaryModifiers(
+      List<_KeyTracker> modifiers) async {
+    return await Future.wait(modifiers.map((keyState) async {
+      await _sendVirtualKey(keyState.vk, KeyActionType.UP);
+      return keyState;
+    }));
+  }
+
+  void _scheduleKeyRepeat(
+      int virtualKeyCode, Duration keyRepeatDelay, Duration keyRepeatInterval) {
     keyRepeatTimers[virtualKeyCode] = Timer(keyRepeatDelay, () async {
       keyRepeatTimers[virtualKeyCode] = Timer.periodic(keyRepeatInterval, (timer) async {
         await _inputService.sendVirtualKey(
@@ -265,11 +406,116 @@ class KeyboardInputService extends GetxService {
         );
       });
     });
+  }
 
-    return _inputService.sendKeyState(
-      virtualKeyCode,
-      keyActionType,
-    );
+  /// Guarantees that when the action is executed only the modifiers in the
+  /// modifiers list are pressed. All other modifiers are suspended and reenabled
+  /// after the action is executed.
+  Future<T> doWithModifiers<T>(List<int> modifiers, Future<T> Function() action) async {
+    print('doWithModifiers: ${modifiers.map((m) => vkToKey(m)).toList()}');
+    // unwantedModifiers are modifiers that are currently pressed but are not
+    // in the modifiers list of the key action. They should be suspended.
+    final unwantedModifiers = modifierStates.entries
+        .map((m) => m.value)
+        .where((m) => m.state == KeyState.DOWN && !modifiers.contains(m.vk))
+        .toList();
+
+    final unwantedSuspendedModifiers =
+        unwantedModifiers.where((m) => m.suspended).toList();
+    print('unwantedSuspendedModifiers: '
+        '${unwantedSuspendedModifiers.map((m) => vkToKey(m.vk)).toList()}');
+    print('unwantedModifiers: '
+        '${unwantedModifiers.map((m) => vkToKey(m.vk)).toList()}');
+
+    List<_KeyTracker> suspendedModifiers = [];
+    if (unwantedModifiers.isNotEmpty) {
+      suspendedModifiers = await _suspendModifierKeys(unwantedModifiers);
+      print('suspendedModifiers: '
+          '${suspendedModifiers.map((m) => vkToKey(m.vk)).toList()}');
+    }
+
+    /// temporaryModifiers are modifiers that are not currently pressed but are
+    /// in the modifiers list of the key action. They should be pressed temporarily.
+    List<int> temporaryModifiers = [];
+    if (modifiers.isNotEmpty) {
+      temporaryModifiers =
+          modifiers.where((m) => !modifierStates.containsKey(m)).toList();
+    }
+
+    final enabledTemporaryModifiers = await _sendTemporaryModifiers(temporaryModifiers);
+
+    final result = await action();
+
+    if (suspendedModifiers.isNotEmpty) {
+      await _resumeModifierKeys(suspendedModifiers);
+    }
+
+    if (enabledTemporaryModifiers.isNotEmpty) {
+      await _disableTemporaryModifiers(enabledTemporaryModifiers);
+    }
+
+    return result;
+  }
+
+  Future<int> _sendVirtualKey(int virtualKeyCode, KeyActionType keyActionType,
+      [KeyOptions? options]) async {
+    int result = 1;
+
+    if (keyActionType == KeyActionType.PRESS) {
+      result = await _inputService.sendVirtualKey(
+        virtualKeyCode,
+        interval: options?.keyRepeatInterval ?? _config.keyPressInterval,
+      );
+      _keyReleased(virtualKeyCode);
+    } else if (keyActionType == KeyActionType.UP) {
+      result = await _inputService.sendKeyState(
+        virtualKeyCode,
+        keyActionType,
+      );
+      _keyReleased(virtualKeyCode);
+    } else {
+      result = await _inputService.sendKeyState(
+        virtualKeyCode,
+        keyActionType,
+      );
+      _keyPressed(virtualKeyCode);
+    }
+
+    return result;
+  }
+
+  Future<int> pressKey(int virtualKeyCode, KeyActionType keyActionType,
+      [KeyOptions? options]) async {
+    _cancelKeyRepeat(virtualKeyCode);
+
+    final int result;
+
+    if (options != null &&
+        options.modifiers != null &&
+        options.disableUnwantedModifiers == true) {
+      final modifiers = options.modifiers!;
+      callback() async => await _sendVirtualKey(virtualKeyCode, keyActionType, options);
+
+      result = await doWithModifiers(modifiers, callback);
+    } else {
+      // No options
+      result = await _sendVirtualKey(virtualKeyCode, keyActionType, options);
+    }
+
+    if (options?.noRepeat == true) {
+      return result;
+    }
+
+    Duration keyRepeatInterval = _config.keyRepeatInterval;
+    if (options?.keyRepeatInterval != null) {
+      keyRepeatInterval = Duration(milliseconds: options!.keyRepeatInterval!);
+    }
+
+    if (keyActionType == KeyActionType.DOWN) {
+      _scheduleKeyRepeat(virtualKeyCode, _config.keyRepeatDelay, keyRepeatInterval);
+    }
+
+    return result;
   }
 
   Future<int> pressMouseButton(MouseButton key, ButtonActionType keyActionType) async {
@@ -293,5 +539,99 @@ class KeyboardInputService extends GetxService {
       speed: _config.cursorSpeed,
       acceleration: _config.cursorAcceleration,
     );
+  }
+
+  // For reference:
+  //
+  // class HotkeyStep:
+  // - final int keyCode
+  //   /// UP, DOWN, PRESS (UP then DOWN)
+  // - final KeyActionType actionType
+  //   /// Wait before executing this step
+  // - final Duration? wait
+  //   /// The speed of the key press (only applicable for actionType == PRESS)
+  // - final Duration? speed
+  //
+  // class HotkeyOptions:
+  // - final bool? disableUnwantedModifiers
+  //   /// The interval between key presses
+  // - final int? speed
+
+  Future<bool> doHotkeyStep(HotkeyStep step, [HotkeyOptions? options]) async {
+    final wait = step.wait ?? options?.speed ?? _config.keyPressInterval;
+    await Future.delayed(Duration(milliseconds: wait));
+    const opt = KeyOptions(noRepeat: true);
+
+    switch (step.actionType) {
+      case KeyActionType.UP:
+        await pressKey(step.keyCode, KeyActionType.UP, opt);
+        break;
+      case KeyActionType.DOWN:
+        await pressKey(step.keyCode, KeyActionType.DOWN, opt);
+        break;
+      case KeyActionType.PRESS:
+        await pressKey(step.keyCode, KeyActionType.DOWN, opt);
+        await Future.delayed(Duration(milliseconds: _config.keyPressInterval));
+        await pressKey(step.keyCode, KeyActionType.UP, opt);
+        break;
+    }
+
+    print('doHotkeyStep: ${vkToKey(step.keyCode)} ${step.actionType}');
+
+    return true;
+  }
+
+  Future<bool> pressHotkey(
+      String id, KeyActionType keyActionType, List<HotkeyStep> hotkeySteps,
+      [HotkeyOptions? options]) async {
+    final result = await _keyLock.synchronized(() async {
+      if (hotkeySteps.isEmpty || id.isEmpty) {
+        return false;
+      }
+
+      final hotkeyState = hotkeyStates.containsKey(id) ? hotkeyStates[id] : null;
+
+      if (keyActionType == KeyActionType.UP) {
+        if (hotkeyState == null) {
+          return false;
+        }
+
+        if (hotkeyState.state == KeyState.UP) {
+          return false;
+        }
+
+        hotkeyState.state = KeyState.UP;
+      }
+
+      if (keyActionType == KeyActionType.DOWN) {
+        if (hotkeyState != null) {
+          if (hotkeyState.state == KeyState.DOWN) {
+            return false;
+          }
+
+          hotkeyState.state = KeyState.DOWN;
+        } else {
+          hotkeyStates[id] = _HotkeyTracker(hotkey: id, state: KeyState.DOWN);
+        }
+
+        doSteps() async {
+          for (final step in hotkeySteps) {
+            await doHotkeyStep(step, options);
+          }
+
+          return true;
+        }
+
+        if (options != null && options.disableUnwantedModifiers == true) {
+          return await doWithModifiers([], doSteps);
+        }
+
+        return await doSteps();
+      }
+
+      return true;
+    });
+
+    return result;
   }
 }
