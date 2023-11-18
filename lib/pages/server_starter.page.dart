@@ -37,6 +37,7 @@ class _ServerPageState extends State<ServerPage> {
   late InputServerController _server;
 
   get isServerSarted => _serverSatus == ServerStatus.online;
+
   String get serverIp => "127.0.0.1:${_portController.text}";
   ServerStatus _serverSatus = ServerStatus.offline;
 
@@ -128,10 +129,10 @@ class _ServerPageState extends State<ServerPage> {
       children: [
         InfoBar(
           title: const Text('Config:'),
-          content: Text(
-            'Speed: ${config.cursorSpeed.toStringAsFixed(2)} '
-            'Acceleration: ${config.cursorAcceleration.toStringAsFixed(2)}',
-          ),
+          content: Obx(() => Text(
+                'Speed: ${config.cursorSpeed.toStringAsFixed(2)} '
+                'Acceleration: ${config.cursorAcceleration.toStringAsFixed(2)}',
+              )),
           style: InfoBarThemeData(
             padding: EdgeInsets.fromLTRB(padding, 0, 0, 0),
             decoration: (_) => const BoxDecoration(

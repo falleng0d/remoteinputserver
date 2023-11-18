@@ -8,8 +8,8 @@ class KeyboardInputConfig extends GetxService {
   final SharedPreferences _prefs;
   bool _initialized = false;
 
-  double _cursorSpeed = 1.0;
-  double _cursorAcceleration = 1.0;
+  final _cursorSpeed = 1.0.obs;
+  final _cursorAcceleration = 1.0.obs;
   int _keyPressInterval = 33;
 
   // 1s
@@ -17,8 +17,8 @@ class KeyboardInputConfig extends GetxService {
   // 15hz
   Duration keyRepeatInterval = const Duration(milliseconds: 1000 ~/ 30);
 
-  double get cursorSpeed => _cursorSpeed;
-  double get cursorAcceleration => _cursorAcceleration;
+  get cursorSpeed => _cursorSpeed.value;
+  get cursorAcceleration => _cursorAcceleration.value;
   int get keyPressInterval => _keyPressInterval;
 
   RxInt updateNotifier = RxInt(0);
@@ -55,7 +55,7 @@ class KeyboardInputConfig extends GetxService {
       return false;
     }
     if (await _prefs.setDouble('cursorSpeed', speed)) {
-      _cursorSpeed = speed;
+      _cursorSpeed.value = speed;
       notify();
 
       return true;
@@ -75,7 +75,7 @@ class KeyboardInputConfig extends GetxService {
       return false;
     }
     if (await _prefs.setDouble('cursorAcceleration', acceleration)) {
-      _cursorAcceleration = acceleration;
+      _cursorAcceleration.value = acceleration;
       notify();
 
       return true;
