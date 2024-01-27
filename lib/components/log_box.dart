@@ -1,8 +1,9 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:gap/gap.dart';
 import 'package:remotecontrol_lib/logger.dart';
 
 class LogBox extends StatefulWidget {
-  const LogBox({Key? key}) : super(key: key);
+  const LogBox({super.key});
 
   @override
   State<LogBox> createState() => _LogBoxState();
@@ -94,7 +95,7 @@ class _LogBoxState extends State<LogBox> {
   Padding buildClearButton() {
     final theme = FluentTheme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(top: 5),
+      padding: const EdgeInsets.only(top: 5, right: 5),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -103,6 +104,7 @@ class _LogBoxState extends State<LogBox> {
             icon: const Icon(FluentIcons.chrome_close),
             onPressed: () => setState(() => _logController.clear()),
           ),
+          const Gap(5),
           IconButton(
             icon: const Icon(FluentIcons.double_chevron_down),
             key: const Key('scroll-to-end'),
@@ -128,13 +130,13 @@ class _LogBoxState extends State<LogBox> {
   Color uncheckedInputColor(FluentThemeData style, Set<ButtonStates> states) {
     if (style.brightness == Brightness.light) {
       if (isScrollToEnd) return const Color(0xFF221D08).withOpacity(0.155);
-      if (states.isDisabled) return style.disabledColor;
+      if (states.isDisabled) return style.inactiveColor;
       if (states.isPressing) return const Color(0xFF221D08).withOpacity(0.155);
       if (states.isHovering) return const Color(0xFF221D08).withOpacity(0.055);
       return Colors.transparent;
     } else {
       if (isScrollToEnd) return const Color(0xFFFFF3E8).withOpacity(0.080);
-      if (states.isDisabled) return style.disabledColor;
+      if (states.isDisabled) return style.inactiveColor;
       if (states.isPressing) return const Color(0xFFFFF3E8).withOpacity(0.080);
       if (states.isHovering) return const Color(0xFFFFF3E8).withOpacity(0.12);
       return Colors.transparent;
