@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:math';
 
-import 'package:ffi/ffi.dart';
 import 'package:get/get.dart';
 import 'package:remotecontrol/services/win32_input.dart';
 import 'package:remotecontrol_lib/client.dart';
@@ -15,6 +13,7 @@ import 'package:win32/win32.dart';
 
 import 'input_config.dart';
 
+/* region Events */
 enum InputReceivedEvent {
   PressKey,
   MoveMouse,
@@ -66,9 +65,18 @@ class MouseButtonReceivedData extends InputReceivedData {
 
 typedef InputEventHandler = void Function(
     InputReceivedEvent event, InputReceivedData data);
+/* endregion */
 
 class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData> {
+  final Logger logger;
+
   bool isDebug = false;
+
+  late final SendKeyWorkerIsolate _sendKeyWorkerIsolate;
+
+  Win32InputService(this.logger) {
+    _sendKeyWorkerIsolate = SendKeyWorkerIsolate((int a) {}, logger);
+  }
 
   Future<int> sendVirtualKey(int virtualKeyCode, {int interval = 20}) async {
     dispatch(
@@ -78,27 +86,24 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
 
     if (isDebug) return TRUE;
 
-    final kbd = calloc<INPUT>();
-    kbd.ref.type = INPUT_KEYBOARD;
-    kbd.ref.ki.wVk = virtualKeyCode;
+    await _sendKeyWorkerIsolate
+        .doTask(SendVirtualKeyParams(virtualKeyCode: virtualKeyCode, interval: interval));
 
-    var result = SendInput(1, kbd, sizeOf<INPUT>());
-    if (result != TRUE) {
-      logger.error('[sendVirtualKey] Error: ${GetLastError()}');
-      return result;
-    }
+    return TRUE;
+  }
 
-    await Future.delayed(Duration(milliseconds: interval));
+  Future<int> sendKeyState(int virtualKeyCode, KeyActionType state) async {
+    dispatch(
+      InputReceivedEvent.PressKey,
+      KeyboardKeyReceivedData(virtualKeyCode, 0, state: state),
+    );
 
-    kbd.ref.ki.dwFlags = KEYEVENTF_KEYUP;
-    result = SendInput(1, kbd, sizeOf<INPUT>());
-    if (result != TRUE) {
-      logger.error('[sendVirtualKey] Error: ${GetLastError()}');
-      return result;
-    }
+    if (isDebug) return TRUE;
 
-    free(kbd);
-    return result;
+    await _sendKeyWorkerIsolate
+        .doTask(SendKeyStateParams(virtualKeyCode: virtualKeyCode, state: state));
+
+    return TRUE;
   }
 
   Future<int> moveMouseRelative(double deltaX, double deltaY,
@@ -120,20 +125,16 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
 
     if (isDebug) return TRUE;
 
-    final mouse = calloc<INPUT>();
-    mouse.ref.type = INPUT_MOUSE;
-    mouse.ref.mi.dwFlags = MOUSEEVENTF_MOVE;
-    mouse.ref.mi.dx = adjustedDeltaX.toInt();
-    mouse.ref.mi.dy = adjustedDeltaY.toInt();
+    await _sendKeyWorkerIsolate.doTask(
+      MoveMouseRelativeParams(
+        deltaX: adjustedDeltaX,
+        deltaY: adjustedDeltaY,
+        speed: speed,
+        acceleration: acceleration,
+      ),
+    );
 
-    final result = SendInput(1, mouse, sizeOf<INPUT>());
-    if (result != TRUE) {
-      logger.error('[moveMouseRelative] Error: ${GetLastError()}');
-      return result;
-    }
-
-    free(mouse);
-    return result;
+    return TRUE;
   }
 
   Future<int> pressMouseKey(MouseButton key, {int interval = 20}) async {
@@ -144,30 +145,9 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
 
     if (isDebug) return TRUE;
 
-    return mouseClick(key, interval: interval);
-  }
+    await _sendKeyWorkerIsolate.doTask(MouseClickParams(key: key, interval: interval));
 
-  Future<int> sendKeyState(int virtualKeyCode, KeyActionType state) async {
-    dispatch(
-      InputReceivedEvent.PressKey,
-      KeyboardKeyReceivedData(virtualKeyCode, 0, state: state),
-    );
-
-    if (isDebug) return TRUE;
-
-    final kbd = calloc<INPUT>();
-    kbd.ref.type = INPUT_KEYBOARD;
-    kbd.ref.ki.wVk = virtualKeyCode;
-    kbd.ref.ki.dwFlags = state == KeyActionType.DOWN ? 0 : KEYEVENTF_KEYUP;
-
-    final result = SendInput(1, kbd, sizeOf<INPUT>());
-    if (result != TRUE) {
-      logger.error('[sendKeyState] Error: ${GetLastError()}');
-      return result;
-    }
-
-    free(kbd);
-    return result;
+    return TRUE;
   }
 
   Future<int> sendMouseKeyState(MouseButton key, ButtonActionType state) async {
@@ -178,18 +158,9 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
 
     if (isDebug) return TRUE;
 
-    final mouse = calloc<INPUT>();
-    mouse.ref.type = INPUT_MOUSE;
-    mouse.ref.mi.dwFlags = state == ButtonActionType.DOWN ? key.keyDown : key.keyUp;
+    await _sendKeyWorkerIsolate.doTask(SendMouseKeyStateParams(key: key, state: state));
 
-    final result = SendInput(1, mouse, sizeOf<INPUT>());
-    if (result != TRUE) {
-      logger.error('[sendMouseKeyState] Error: ${GetLastError()}');
-      return result;
-    }
-
-    free(mouse);
-    return result;
+    return TRUE;
   }
 
   Map<int, int> getModifierStates() {
@@ -269,6 +240,7 @@ class _HotkeyTracker {
 class KeyboardInputService extends GetxService {
   final Win32InputService _inputService;
   final KeyboardInputConfig _config;
+  final Logger logger;
 
   Map<int, Timer> keyRepeatTimers = {};
   Map<int, _KeyTracker> keyStates = {};
@@ -280,7 +252,7 @@ class KeyboardInputService extends GetxService {
 
   get isDebug => _config.isDebug;
 
-  KeyboardInputService(this._inputService, this._config);
+  KeyboardInputService(this._inputService, this._config, this.logger);
 
   void _cancelKeyRepeat(int virtualKeyCode) {
     if (keyRepeatTimers.containsKey(virtualKeyCode)) {
@@ -412,7 +384,7 @@ class KeyboardInputService extends GetxService {
   /// modifiers list are pressed. All other modifiers are suspended and reenabled
   /// after the action is executed.
   Future<T> doWithModifiers<T>(List<int> modifiers, Future<T> Function() action) async {
-    print('doWithModifiers: ${modifiers.map((m) => vkToKey(m)).toList()}');
+    logger.log('doWithModifiers: ${modifiers.map((m) => vkToKey(m)).toList()}');
     // unwantedModifiers are modifiers that are currently pressed but are not
     // in the modifiers list of the key action. They should be suspended.
     final unwantedModifiers = modifierStates.entries
@@ -422,15 +394,15 @@ class KeyboardInputService extends GetxService {
 
     final unwantedSuspendedModifiers =
         unwantedModifiers.where((m) => m.suspended).toList();
-    print('unwantedSuspendedModifiers: '
+    logger.log('unwantedSuspendedModifiers: '
         '${unwantedSuspendedModifiers.map((m) => vkToKey(m.vk)).toList()}');
-    print('unwantedModifiers: '
+    logger.log('unwantedModifiers: '
         '${unwantedModifiers.map((m) => vkToKey(m.vk)).toList()}');
 
     List<_KeyTracker> suspendedModifiers = [];
     if (unwantedModifiers.isNotEmpty) {
       suspendedModifiers = await _suspendModifierKeys(unwantedModifiers);
-      print('suspendedModifiers: '
+      logger.log('suspendedModifiers: '
           '${suspendedModifiers.map((m) => vkToKey(m.vk)).toList()}');
     }
 
@@ -576,7 +548,7 @@ class KeyboardInputService extends GetxService {
         break;
     }
 
-    print('doHotkeyStep: ${vkToKey(step.keyCode)} ${step.actionType}');
+    logger.log('doHotkeyStep: ${vkToKey(step.keyCode)} ${step.actionType}');
 
     return true;
   }

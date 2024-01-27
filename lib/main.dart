@@ -80,17 +80,17 @@ Future<void> initWindow(SharedPreferences prefs) async {
 
 Future<void> initDependencies(SharedPreferences prefs) async {
   // Provide the dependencies via GetX.
-  final inputService = Win32InputService();
+  final inputService = Win32InputService(logger);
   Get.put(inputService);
 
   final inputConfig = await KeyboardInputConfig(inputService, prefs).load();
   Get.put(inputConfig);
 
-  Get.put(KeyboardInputService(inputService, inputConfig));
+  Get.put(KeyboardInputService(inputService, inputConfig, logger));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -134,7 +134,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, this.title = ""}) : super(key: key);
+  const MyHomePage({super.key, this.title = ""});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
