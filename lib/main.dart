@@ -1,4 +1,6 @@
 // ignore_for_file: avoid_print
+import 'dart:io';
+
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart' as flutter_acrylic;
@@ -9,6 +11,7 @@ import 'package:remotecontrol/services/input_config.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:system_theme/system_theme.dart';
+import 'package:system_tray/system_tray.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -158,15 +161,55 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
   late SharedPreferences prefs;
 
   final settingsController = ScrollController();
+  final SystemTray _systemTray = SystemTray();
+  final AppWindow _appWindow = AppWindow();
 
   @override
   void initState() {
     Future.sync(() async {
       prefs = await SharedPreferences.getInstance();
       windowManager.addListener(this);
+      await initSystemTray();
     });
 
     super.initState();
+  }
+
+  Future<void> initSystemTray() async {
+    String path = Platform.isWindows ? 'assets/app_icon.ico' : 'assets/app_icon.png';
+
+    // We first init the systray menu
+    await _systemTray.initSystemTray(
+      title: "Remote Input Server",
+      iconPath: path,
+    );
+
+    // create context menu
+    final Menu menu = Menu();
+    await menu.buildFrom([
+      MenuItemLabel(
+          label: 'Show',
+          onClicked: (menuItem) {
+            _appWindow.show();
+            _systemTray.destroy();
+            print('Show');
+          }),
+      MenuItemLabel(label: 'Exit', onClicked: (menuItem) => _appWindow.close()),
+    ]);
+
+    // set context menu
+    await _systemTray.setContextMenu(menu);
+
+    // handle system tray event
+    _systemTray.registerSystemTrayEventHandler((eventName) {
+      debugPrint("eventName: $eventName");
+      if (eventName == kSystemTrayEventClick) {
+        Platform.isWindows ? _appWindow.show() : _systemTray.popUpContextMenu();
+        _systemTray.destroy();
+      } else if (eventName == kSystemTrayEventRightClick) {
+        Platform.isWindows ? _systemTray.popUpContextMenu() : _appWindow.show();
+      }
+    });
   }
 
   @override
@@ -225,6 +268,12 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
       prefs.setDouble('width', value.width);
       prefs.setDouble('height', value.height);
     });
+  }
+
+  @override
+  void onWindowMinimize() {
+    _appWindow.hide();
+    initSystemTray();
   }
 
   @override
