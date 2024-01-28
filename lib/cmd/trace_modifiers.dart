@@ -1,11 +1,12 @@
 import 'dart:io';
 
+import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/virtualkeys.dart';
 
 import '../services/win32_input_service.dart';
 
 main() {
-  final win32InputService = Win32InputService();
+  final win32InputService = Win32InputService(logger);
 
   while (true) {
     printModifierStates(win32InputService);
