@@ -34,8 +34,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
 
-  if (kIsWeb ||
-      [TargetPlatform.windows, TargetPlatform.android].contains(defaultTargetPlatform)) {
+  if ([TargetPlatform.windows, TargetPlatform.android].contains(defaultTargetPlatform)) {
     SystemTheme.accentColor;
   }
 
@@ -54,13 +53,10 @@ void main() async {
 
 Future<void> initWindow(SharedPreferences prefs) async {
   await flutter_acrylic.Window.initialize();
-  await WindowManager.instance.ensureInitialized();
-  windowManager.waitUntilReadyToShow().then((_) async {
-    await windowManager.setTitleBarStyle(
-      TitleBarStyle.hidden,
-      windowButtonVisibility: false,
-    );
 
+  await WindowManager.instance.ensureInitialized();
+
+  windowManager.waitUntilReadyToShow().then((_) async {
     // Load position and size from prefs
     final width = prefs.getDouble('width') ?? DEFAULT_WIDTH;
     final height = prefs.getDouble('height') ?? DEFAULT_HEIGHT;
@@ -73,7 +69,6 @@ Future<void> initWindow(SharedPreferences prefs) async {
     await windowManager.setMinimumSize(const Size(DEFAULT_WIDTH, DEFAULT_HEIGHT));
 
     await windowManager.setPreventClose(true);
-    await windowManager.setSkipTaskbar(false);
     await windowManager.show();
   });
 }
@@ -89,16 +84,19 @@ Future<void> initDependencies(SharedPreferences prefs) async {
   Get.put(KeyboardInputService(inputService, inputConfig, logger));
 }
 
+final _appTheme = AppTheme();
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AppTheme(),
+    return ChangeNotifierProvider.value(
+      value: _appTheme,
       builder: (context, _) {
         final appTheme = context.watch<AppTheme>();
+
         return FluentApp(
           title: appTitle,
           themeMode: appTheme.mode,
@@ -117,11 +115,14 @@ class MyApp extends StatelessWidget {
           theme: FluentThemeData(
             accentColor: appTheme.color,
             visualDensity: VisualDensity.standard,
+            // scaffoldBackgroundColor: Colors.white,
             focusTheme: FocusThemeData(
               glowFactor: is10footScreen(context) ? 2.0 : 0.0,
             ),
+            scaffoldBackgroundColor: Colors.white,
           ),
           builder: (context, child) {
+            appTheme.setEffect(appTheme.windowEffect, context);
             return Directionality(
               textDirection: appTheme.textDirection,
               child: child!,
@@ -226,135 +227,8 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
     });
   }
 
-  NavigationAppBar buildNavigationAppBar() {
-    return NavigationAppBar(
-      title: () {
-        if (kIsWeb) return const Text(appTitle);
-        return const DragToMoveArea(
-          child: Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: Text(appTitle),
-          ),
-        );
-      }(),
-      actions: kIsWeb
-          ? null
-          : DragToMoveArea(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Spacer(),
-                  Row(
-                    children: [
-                      Container(
-                        width: 45,
-                        height: 30,
-                        color: Colors.transparent,
-                        child: Row(
-                          children: [
-                            IconButton(
-                                icon: const Icon(
-                                  FluentIcons.chrome_minimize,
-                                  color: Color.fromARGB(255, 154, 154, 154),
-                                ),
-                                onPressed: () {
-                                  WindowManager.instance.minimize();
-                                }),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: 45,
-                        height: 30,
-                        color: Colors.transparent,
-                        child: Row(
-                          children: [
-                            IconButton(
-                                icon: const Icon(
-                                  FluentIcons.chrome_close,
-                                  color: Color.fromARGB(255, 154, 154, 154),
-                                ),
-                                onPressed: () {
-                                  WindowManager.instance.setPreventClose(false);
-                                  WindowManager.instance.close();
-                                }),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-    );
-  }
-
-  List<NavigationPaneItem> buildFooterItems() {
-    return [
-      PaneItemSeparator(),
-      PaneItem(
-        icon: const Icon(FluentIcons.settings),
-        title: const Text('Settings'),
-        body: const Text('Settings Page'),
-      ),
-    ];
-  }
-
-  Container buildHeader() {
-    return Container(
-      height: kOneLineTileHeight,
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: const FlutterLogo(
-        style: FlutterLogoStyle.horizontal,
-        size: 100,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final appTheme = context.watch<AppTheme>();
-    return NavigationView(
-      appBar: buildNavigationAppBar(),
-      pane: NavigationPane(
-        selected: index,
-        onChanged: (i) => setState(() => index = i),
-        size: const NavigationPaneSize(
-          openMinWidth: 100,
-          openMaxWidth: 320,
-        ),
-        header: buildHeader(),
-        displayMode: appTheme.displayMode,
-        indicator: () {
-          switch (appTheme.indicator) {
-            case NavigationIndicators.end:
-              return const EndNavigationIndicator();
-            case NavigationIndicators.sticky:
-            default:
-              return const StickyNavigationIndicator();
-          }
-        }(),
-        items: [
-          // It doesn't look good when resizing from compact to open
-          // PaneItemHeader(header: Text('User Interaction')),
-          PaneItem(
-            icon: const Icon(FluentIcons.analytics_view),
-            title: const Text('Server'),
-            body: const ServerPage(),
-          ),
-        ],
-        autoSuggestBox: AutoSuggestBox(
-          controller: TextEditingController(),
-          items: [
-            AutoSuggestBoxItem(
-              label: 'server',
-              value: 'Server',
-            ),
-          ],
-        ),
-        autoSuggestBoxReplacement: const Icon(FluentIcons.search),
-        footerItems: buildFooterItems(),
-      ),
-    );
+    return const ServerPage();
   }
 }

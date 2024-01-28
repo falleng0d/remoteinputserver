@@ -20,7 +20,7 @@ import '../services/input_config.dart';
 const _defaultPort = 9035;
 
 class ServerPage extends StatefulWidget {
-  const ServerPage({Key? key}) : super(key: key);
+  const ServerPage({super.key});
 
   @override
   _ServerPageState createState() => _ServerPageState();
@@ -127,16 +127,21 @@ class _ServerPageState extends State<ServerPage> {
   Widget buildBottomBar(double padding) {
     return Row(
       children: [
-        InfoBar(
-          title: const Text('Config:'),
-          content: Obx(() => Text(
-                'Speed: ${config.cursorSpeed.toStringAsFixed(2)} '
-                'Acceleration: ${config.cursorAcceleration.toStringAsFixed(2)}',
-              )),
-          style: InfoBarThemeData(
-            padding: EdgeInsets.fromLTRB(padding, 0, 0, 0),
-            decoration: (_) => const BoxDecoration(
-              border: null,
+        Expanded(
+          child: Container(
+            color: FluentTheme.of(context).micaBackgroundColor.withOpacity(0.95),
+            child: InfoBar(
+              title: const Text('Config:'),
+              content: Obx(() => Text(
+                    'Speed: ${config.cursorSpeed.toStringAsFixed(2)} '
+                    'Acceleration: ${config.cursorAcceleration.toStringAsFixed(2)}',
+                  )),
+              style: InfoBarThemeData(
+                padding: EdgeInsets.fromLTRB(padding, 0, 0, 0),
+                decoration: (_) => const BoxDecoration(
+                  border: null,
+                ),
+              ),
             ),
           ),
         ),
