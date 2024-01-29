@@ -12,7 +12,7 @@ import 'measure_size.dart';
 class CursorPreview extends StatefulWidget {
   final InputServerController server;
 
-  const CursorPreview({Key? key, required this.server}) : super(key: key);
+  const CursorPreview({super.key, required this.server});
 
   @override
   State<CursorPreview> createState() => _CursorPreviewState();
@@ -32,11 +32,11 @@ class _CursorPreviewState extends State<CursorPreview> {
 
   void inputEventHandler(InputReceivedEvent event, InputReceivedData data) {
     switch (data.runtimeType) {
-      case MouseMoveReceivedData:
+      case MouseMoveReceivedData _:
         var d = data as MouseMoveReceivedData;
         moveCursor(d.ajustedDeltaX, d.ajustedDeltaY);
         break;
-      case MouseButtonReceivedData:
+      case MouseButtonReceivedData _:
         var d = data as MouseButtonReceivedData;
         logger.trace("Mouse key pressed: ${d.key} ${d.state ?? 'PRESS'}");
         setState(() {

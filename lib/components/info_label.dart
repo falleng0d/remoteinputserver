@@ -9,23 +9,22 @@ import 'package:flutter/foundation.dart';
 class InfoLabel2 extends StatelessWidget {
   /// Creates an info label.
   InfoLabel2({
-    Key? key,
+    super.key,
     this.child,
     required String label,
     TextStyle? labelStyle,
     this.isHeader = true,
     this.crossAxisAlignment = CrossAxisAlignment.start,
-  })  : label = TextSpan(text: label, style: labelStyle),
-        super(key: key);
+  }) : label = TextSpan(text: label, style: labelStyle);
 
   /// Creates an info label.
   const InfoLabel2.rich({
-    Key? key,
+    super.key,
     this.child,
     required this.label,
     this.isHeader = true,
     this.crossAxisAlignment = CrossAxisAlignment.start,
-  }) : super(key: key);
+  });
 
   final InlineSpan label;
 

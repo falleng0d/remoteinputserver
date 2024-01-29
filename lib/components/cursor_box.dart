@@ -10,15 +10,14 @@ class CursorBox extends StatelessWidget {
   final Color? cursorColor;
 
   const CursorBox({
-    Key? key,
+    super.key,
     required double x,
     required double y,
     this.anchor = Alignment.center,
     this.cursorSize = 10,
     this.cursorColor,
   })  : _y = y,
-        _x = x,
-        super(key: key);
+        _x = x;
 
   double x(BoxConstraints constraints) {
     double offset = 0;

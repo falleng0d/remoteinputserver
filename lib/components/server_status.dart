@@ -6,9 +6,9 @@ class ServerStatusText extends StatelessWidget {
   final ServerStatus status;
 
   const ServerStatusText(
-      this.status, {
-        Key? key,
-      }) : super(key: key);
+    this.status, {
+    super.key,
+  });
 
   get statusColor {
     switch (status) {

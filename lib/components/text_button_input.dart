@@ -17,7 +17,7 @@ class TextButtonInput extends StatelessWidget {
   final bool textInputEnabled;
 
   const TextButtonInput({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.header,
     required this.placeholder,
@@ -31,7 +31,7 @@ class TextButtonInput extends StatelessWidget {
     this.controller,
     this.enabled = true,
     this.textInputEnabled = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

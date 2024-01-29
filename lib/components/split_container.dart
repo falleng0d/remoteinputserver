@@ -9,13 +9,13 @@ class SplitContainer extends StatelessWidget {
   final bool expandLeft, expandRight;
 
   const SplitContainer({
-    Key? key,
+    super.key,
     required this.left,
     required this.right,
     this.direction = Direction.horizontal,
     this.expandLeft = true,
     this.expandRight = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

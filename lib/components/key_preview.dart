@@ -36,7 +36,7 @@ class _MbButton {
 class KeyHistoryPreview extends StatefulWidget {
   final InputServerController server;
 
-  const KeyHistoryPreview({Key? key, required this.server}) : super(key: key);
+  const KeyHistoryPreview({super.key, required this.server});
 
   @override
   _KeyHistoryPreviewState createState() => _KeyHistoryPreviewState();
@@ -55,7 +55,7 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
 
   void inputEventHandler(InputReceivedEvent event, InputReceivedData data) {
     switch (data.runtimeType) {
-      case KeyboardKeyReceivedData:
+      case KeyboardKeyReceivedData _:
         var d = data as KeyboardKeyReceivedData;
         setState(() {
           // add to front of list
@@ -66,7 +66,7 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
         });
         updateModifiers();
         break;
-      case MouseButtonReceivedData:
+      case MouseButtonReceivedData _:
         var d = data as MouseButtonReceivedData;
         setState(() {
           // add to front of list
