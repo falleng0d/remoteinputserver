@@ -108,8 +108,8 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
 
   Future<int> moveMouseRelative(double deltaX, double deltaY,
       {double speed = 1.0, double acceleration = 1.0}) async {
-    double adjustedDeltaX = applyExponentialMouseCurve(deltaX, speed, acceleration, 0);
-    double adjustedDeltaY = applyExponentialMouseCurve(deltaY, speed, acceleration, 1);
+    double adjustedDeltaX = applyExponentialMouseCurve2(deltaX, speed, acceleration, 0);
+    double adjustedDeltaY = applyExponentialMouseCurve2(deltaY, speed, acceleration, 1);
 
     dispatch(
       InputReceivedEvent.MoveMouse,
@@ -206,6 +206,30 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
     double adjustedDelta = delta * speed * (65535.0 / GetSystemMetrics(SM_CXSCREEN));
     adjustedDelta = adjustedDelta.sign * pow(adjustedDelta.abs(), acceleration);
     return adjustedDelta;
+  }
+
+  /// [applyExponentialMouseCurve2] is an alternative implementation of the
+  /// mouse curve function. It is more aggressive and has a different curve.
+  ///
+  /// TODO: Remove the commented code.
+  double applyExponentialMouseCurve2(
+      double delta, double speed, double acceleration, int axis) {
+    // delta = delta * 2.1249999920837581659;
+    // delta = (delta * 10).round() / 10;
+    // final offsetType = axis == 0 ? SM_CXSCREEN : SM_CYSCREEN;
+    // final offset = (65535.0 / GetSystemMetrics(offsetType));
+    const offset = 2.1249999920837581659;
+    double adjustedDeltaPreAccel = (delta) * 1 * offset;
+    adjustedDeltaPreAccel += adjustedDeltaPreAccel.sign * (speed - 0.10);
+    double adjustedDelta = adjustedDeltaPreAccel.sign *
+        pow(adjustedDeltaPreAccel.abs(), 2 + ((acceleration - 0.10) * 2));
+    // round to nearest multiple of .000X
+    adjustedDelta = (adjustedDelta * 10).round() / 10;
+    // logger.log(
+    //     'adjustedDelta: $adjustedDelta->${adjustedDelta.round()}, adjustedDeltaPreAccel: $adjustedDeltaPreAccel, delta: $delta, offset: $offset');
+    return adjustedDelta.abs() > 0
+        ? adjustedDelta.sign * (adjustedDelta.abs() + 1)
+        : adjustedDelta;
   }
 }
 
