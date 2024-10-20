@@ -13,7 +13,7 @@ Future<int> sendVirtualKey(int virtualKeyCode, {int interval = 20}) async {
   if (kDebugMode) return TRUE;
 
   final kbd = calloc<INPUT>();
-  kbd.ref.type = INPUT_KEYBOARD;
+  kbd.ref.type = INPUT_TYPE.INPUT_KEYBOARD;
   kbd.ref.ki.wVk = virtualKeyCode;
 
   var result = SendInput(1, kbd, sizeOf<INPUT>());
@@ -24,7 +24,7 @@ Future<int> sendVirtualKey(int virtualKeyCode, {int interval = 20}) async {
 
   await Future.delayed(Duration(milliseconds: interval));
 
-  kbd.ref.ki.dwFlags = KEYEVENTF_KEYUP;
+  kbd.ref.ki.dwFlags = KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP;
   result = SendInput(1, kbd, sizeOf<INPUT>());
   if (result != TRUE) {
     logger.error('[sendVirtualKey] Error: ${GetLastError()}');
@@ -39,9 +39,10 @@ Future<int> sendKeyState(int virtualKeyCode, KeyActionType state) async {
   if (kDebugMode) return TRUE;
 
   final kbd = calloc<INPUT>();
-  kbd.ref.type = INPUT_KEYBOARD;
+  kbd.ref.type = INPUT_TYPE.INPUT_KEYBOARD;
   kbd.ref.ki.wVk = virtualKeyCode;
-  kbd.ref.ki.dwFlags = state == KeyActionType.DOWN ? 0 : KEYEVENTF_KEYUP;
+  kbd.ref.ki.dwFlags =
+      state == KeyActionType.DOWN ? 0 : KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP;
 
   final result = SendInput(1, kbd, sizeOf<INPUT>());
   if (result != TRUE) {
@@ -56,7 +57,7 @@ Future<int> sendKeyState(int virtualKeyCode, KeyActionType state) async {
 Future<int> mouseClick(MouseButton key, {int interval = 20}) async {
   final mouse = calloc<INPUT>();
 
-  mouse.ref.type = INPUT_MOUSE;
+  mouse.ref.type = INPUT_TYPE.INPUT_MOUSE;
   mouse.ref.mi.dwFlags = key.keyDown;
   var result = SendInput(1, mouse, sizeOf<INPUT>());
   if (result != TRUE) {
@@ -85,7 +86,7 @@ Future<int> sendMouseKeyState(MouseButton key, ButtonActionType state) async {
   if (kDebugMode) return TRUE;
 
   final mouse = calloc<INPUT>();
-  mouse.ref.type = INPUT_MOUSE;
+  mouse.ref.type = INPUT_TYPE.INPUT_MOUSE;
   mouse.ref.mi.dwFlags = state == ButtonActionType.DOWN ? key.keyDown : key.keyUp;
 
   final result = SendInput(1, mouse, sizeOf<INPUT>());
@@ -103,8 +104,8 @@ Future<int> moveMouseRelative(double deltaX, double deltaY,
   if (kDebugMode) return TRUE;
 
   final mouse = calloc<INPUT>();
-  mouse.ref.type = INPUT_MOUSE;
-  mouse.ref.mi.dwFlags = MOUSEEVENTF_MOVE;
+  mouse.ref.type = INPUT_TYPE.INPUT_MOUSE;
+  mouse.ref.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE;
   mouse.ref.mi.dx = deltaX.toInt();
   mouse.ref.mi.dy = deltaY.toInt();
 

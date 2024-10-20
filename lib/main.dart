@@ -223,11 +223,11 @@ class _MyHomePageState extends State<MyHomePage> with WindowListener {
   void onWindowClose() async {
     bool isPreventClose = await windowManager.isPreventClose();
 
-    // ignore: use_build_context_synchronously
     if (!context.mounted) return;
 
     if (isPreventClose) {
       await showDialog(
+        // ignore: use_build_context_synchronously
         context: context,
         builder: (_) {
           return ContentDialog(

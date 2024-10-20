@@ -203,7 +203,8 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
   /// 0 = X, 1 = Y
   double applyExponentialMouseCurve(
       double delta, double speed, double acceleration, int axis) {
-    double adjustedDelta = delta * speed * (65535.0 / GetSystemMetrics(SM_CXSCREEN));
+    double adjustedDelta =
+        delta * speed * (65535.0 / GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN));
     adjustedDelta = adjustedDelta.sign * pow(adjustedDelta.abs(), acceleration);
     return adjustedDelta;
   }
