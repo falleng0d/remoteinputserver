@@ -54,7 +54,7 @@ Future<int> sendKeyState(int virtualKeyCode, KeyActionType state) async {
   return result;
 }
 
-Future<int> mouseClick(MouseButton key, {int interval = 20}) async {
+Future<int> mouseClick(ButtonFlags key, {int interval = 20}) async {
   final mouse = calloc<INPUT>();
 
   mouse.ref.type = INPUT_TYPE.INPUT_MOUSE;
@@ -82,7 +82,7 @@ Future<int> mouseClick(MouseButton key, {int interval = 20}) async {
   return result;
 }
 
-Future<int> sendMouseKeyState(MouseButton key, ButtonActionType state) async {
+Future<int> sendMouseKeyState(ButtonFlags key, ButtonActionType state) async {
   if (kDebugMode) return TRUE;
 
   final mouse = calloc<INPUT>();
@@ -136,14 +136,14 @@ final class SendKeyStateParams extends SendInputParameters {
 }
 
 final class MouseClickParams extends SendInputParameters {
-  final MouseButton key;
+  final ButtonFlags key;
   final int interval;
 
   MouseClickParams({required this.key, this.interval = 20});
 }
 
 final class SendMouseKeyStateParams extends SendInputParameters {
-  final MouseButton key;
+  final ButtonFlags key;
   final ButtonActionType state;
 
   SendMouseKeyStateParams({required this.key, required this.state});

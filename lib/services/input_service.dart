@@ -31,7 +31,7 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
 
     final result = await keyboardInputService.pressKey(virtualKey, actionType, options);
 
-    _logger.info('Key ${request.type}: ${vkToKey(request.id)} ${options?.toString()}');
+    _logger.info('Key ${request.type}: ${EnIntKbMapper.keyToString(request.id)} ${options?.toString()}');
 
     return pb.Response()..message = result.toString();
   }
@@ -62,8 +62,8 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
 
   @override
   Future<pb.Response> pressMouseKey(ServiceCall call, pb.MouseKey request) async {
-    final buttonType = MouseButtonType.values[request.id];
-    final button = MouseButton.fromMouseButton(buttonType);
+    final buttonType = Button.values[request.id];
+    final button = ButtonFlags.fromMouseButton(buttonType);
     final actionType = pbToButtonActionType(request.type);
 
     final result = await keyboardInputService.pressMouseButton(button, actionType);

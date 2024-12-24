@@ -11,7 +11,7 @@ class _KbdKey {
 
   get state => _state != null ? '_$_state' : null;
 
-  get label => vkToKey(virtualKeyCode);
+  get label => EnIntKbMapper.keyToString(virtualKeyCode);
 
   _KbdKey(this.virtualKeyCode, {KeyActionType? state}) : _state = state;
 
@@ -20,7 +20,7 @@ class _KbdKey {
 }
 
 class _MbButton {
-  final MouseButton button;
+  final ButtonFlags button;
   final ButtonActionType? _state;
 
   get state => _state != null ? '_$_state' : null;

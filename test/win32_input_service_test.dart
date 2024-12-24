@@ -8,7 +8,7 @@ main() {
     final win32InputService = Win32InputService(logger);
 
     test("getActiveModifiers", () {
-      final shiftKey = keyToVK("shift");
+      final shiftKey = stringToVk("shift");
 
       // activate shift key
       win32InputService.sendKeyState(shiftKey, KeyActionType.DOWN);
@@ -20,14 +20,14 @@ main() {
       win32InputService.sendKeyState(shiftKey, KeyActionType.UP);
 
       // check if shift key is active
-      print("activeModifiersVks: ${activeModifiersVks.map((e) => vkToKey(e)).toList()}");
+      print("activeModifiersVks: ${activeModifiersVks.map((e) => EnIntKbMapper.keyToString(e)).toList()}");
 
       expect(activeModifiersVks.contains(shiftKey), true);
       expect(activeModifiersVks.length, 1);
     });
 
     test("isModifierActive", () {
-      final shiftKey = keyToVK("shift");
+      final shiftKey = stringToVk("shift");
 
       // activate shift key
       win32InputService.sendKeyState(shiftKey, KeyActionType.DOWN);

@@ -22,7 +22,7 @@ printModifierStates(Win32InputService service) {
   final Map<int, int> modifierStates = service.getModifierStates();
 
   for (var entry in modifierStates.entries) {
-    final modifier = vkToKey(entry.key);
+    final modifier = EnIntKbMapper.keyToString(entry.key);
     final state = entry.value;
 
     print("modifier: $modifier, state: $state");

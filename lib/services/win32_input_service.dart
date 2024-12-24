@@ -55,7 +55,7 @@ class KeyboardKeyReceivedData extends InputReceivedData {
 }
 
 class MouseButtonReceivedData extends InputReceivedData {
-  final MouseButton key;
+  final ButtonFlags key;
   final int interval;
   final ButtonActionType? state;
 
@@ -137,7 +137,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
     return TRUE;
   }
 
-  Future<int> pressMouseKey(MouseButton key, {int interval = 20}) async {
+  Future<int> pressMouseKey(ButtonFlags key, {int interval = 20}) async {
     dispatch(
       InputReceivedEvent.PressMouseKey,
       MouseButtonReceivedData(key, interval),
@@ -150,7 +150,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
     return TRUE;
   }
 
-  Future<int> sendMouseKeyState(MouseButton key, ButtonActionType state) async {
+  Future<int> sendMouseKeyState(ButtonFlags key, ButtonActionType state) async {
     dispatch(
       InputReceivedEvent.PressMouseKey,
       MouseButtonReceivedData(key, 0, state: state),
@@ -164,7 +164,7 @@ class Win32InputService with Subscribable<InputReceivedEvent, InputReceivedData>
   }
 
   Map<int, int> getModifierStates() {
-    final modifiers = getModifiers();
+    final modifiers = getVkModifiers();
     final modifierStates = <int, int>{};
 
     for (final vk in modifiers) {
@@ -295,7 +295,7 @@ class KeyboardInputService extends GetxService {
         lastKeepAlive: DateTime.now(),
       );
 
-      if (isModifierKey(virtualKeyCode)) {
+      if (EnIntKbMapper.isModifier(virtualKeyCode)) {
         modifierStates[virtualKeyCode] = keyStates[virtualKeyCode]!;
       }
 
@@ -304,7 +304,7 @@ class KeyboardInputService extends GetxService {
 
     final keyState = keyStates[virtualKeyCode]!;
 
-    if (isModifierKey(virtualKeyCode)) {
+    if (EnIntKbMapper.isModifier(virtualKeyCode)) {
       modifierStates[virtualKeyCode] = keyState;
     }
 
@@ -332,7 +332,7 @@ class KeyboardInputService extends GetxService {
       keyState.downSince = null;
     }
 
-    if (isModifierKey(virtualKeyCode)) {
+    if (EnIntKbMapper.isModifier(virtualKeyCode)) {
       modifierStates[virtualKeyCode] = keyStates[virtualKeyCode]!;
     }
   }
@@ -409,7 +409,7 @@ class KeyboardInputService extends GetxService {
   /// modifiers list are pressed. All other modifiers are suspended and reenabled
   /// after the action is executed.
   Future<T> doWithModifiers<T>(List<int> modifiers, Future<T> Function() action) async {
-    logger.log('doWithModifiers: ${modifiers.map((m) => vkToKey(m)).toList()}');
+    logger.log('doWithModifiers: ${modifiers.map((m) => EnIntKbMapper.keyToString(m)).toList()}');
     // unwantedModifiers are modifiers that are currently pressed but are not
     // in the modifiers list of the key action. They should be suspended.
     final unwantedModifiers = modifierStates.entries
@@ -420,15 +420,15 @@ class KeyboardInputService extends GetxService {
     final unwantedSuspendedModifiers =
         unwantedModifiers.where((m) => m.suspended).toList();
     logger.log('unwantedSuspendedModifiers: '
-        '${unwantedSuspendedModifiers.map((m) => vkToKey(m.vk)).toList()}');
+        '${unwantedSuspendedModifiers.map((m) => EnIntKbMapper.keyToString(m.vk)).toList()}');
     logger.log('unwantedModifiers: '
-        '${unwantedModifiers.map((m) => vkToKey(m.vk)).toList()}');
+        '${unwantedModifiers.map((m) => EnIntKbMapper.keyToString(m.vk)).toList()}');
 
     List<_KeyTracker> suspendedModifiers = [];
     if (unwantedModifiers.isNotEmpty) {
       suspendedModifiers = await _suspendModifierKeys(unwantedModifiers);
       logger.log('suspendedModifiers: '
-          '${suspendedModifiers.map((m) => vkToKey(m.vk)).toList()}');
+          '${suspendedModifiers.map((m) => EnIntKbMapper.keyToString(m.vk)).toList()}');
     }
 
     /// temporaryModifiers are modifiers that are not currently pressed but are
@@ -515,7 +515,7 @@ class KeyboardInputService extends GetxService {
     return result;
   }
 
-  Future<int> pressMouseButton(MouseButton key, ButtonActionType keyActionType) async {
+  Future<int> pressMouseButton(ButtonFlags key, ButtonActionType keyActionType) async {
     if (keyActionType == ButtonActionType.PRESS) {
       return _inputService.pressMouseKey(
         key,
@@ -573,7 +573,7 @@ class KeyboardInputService extends GetxService {
         break;
     }
 
-    logger.log('doHotkeyStep: ${vkToKey(step.keyCode)} ${step.actionType}');
+    logger.log('doHotkeyStep: ${EnIntKbMapper.keyToString(step.keyCode)} ${step.actionType}');
 
     return true;
   }
