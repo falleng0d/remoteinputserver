@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
+import 'package:remotecontrol/win32vk.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/virtualkeys.dart';
 import 'package:win32/win32.dart';

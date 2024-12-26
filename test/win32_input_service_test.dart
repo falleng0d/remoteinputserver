@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:remotecontrol/services/win32_input_service.dart';
+import 'package:remotecontrol/win32vk.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/virtualkeys.dart';
 
@@ -20,7 +21,7 @@ main() {
       win32InputService.sendKeyState(shiftKey, KeyActionType.UP);
 
       // check if shift key is active
-      print("activeModifiersVks: ${activeModifiersVks.map((e) => EnIntKbMapper.keyToString(e)).toList()}");
+      print("activeModifiersVks: ${activeModifiersVks.map((e) => vkToString(e)).toList()}");
 
       expect(activeModifiersVks.contains(shiftKey), true);
       expect(activeModifiersVks.length, 1);

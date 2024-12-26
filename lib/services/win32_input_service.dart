@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:get/get.dart';
 import 'package:remotecontrol/services/win32_input.dart';
+import 'package:remotecontrol/win32vk.dart';
 import 'package:remotecontrol_lib/client.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/mixin/subscribable.dart';
@@ -10,7 +11,6 @@ import 'package:remotecontrol_lib/values/hotkey_steps.dart';
 import 'package:remotecontrol_lib/virtualkeys.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:win32/win32.dart';
-
 import 'input_config.dart';
 
 /* region Events */
@@ -295,7 +295,7 @@ class KeyboardInputService extends GetxService {
         lastKeepAlive: DateTime.now(),
       );
 
-      if (EnIntKbMapper.isModifier(virtualKeyCode)) {
+      if (isModifierKey(virtualKeyCode)) {
         modifierStates[virtualKeyCode] = keyStates[virtualKeyCode]!;
       }
 
@@ -304,7 +304,7 @@ class KeyboardInputService extends GetxService {
 
     final keyState = keyStates[virtualKeyCode]!;
 
-    if (EnIntKbMapper.isModifier(virtualKeyCode)) {
+    if (isModifierKey(virtualKeyCode)) {
       modifierStates[virtualKeyCode] = keyState;
     }
 
@@ -332,7 +332,7 @@ class KeyboardInputService extends GetxService {
       keyState.downSince = null;
     }
 
-    if (EnIntKbMapper.isModifier(virtualKeyCode)) {
+    if (isModifierKey(virtualKeyCode)) {
       modifierStates[virtualKeyCode] = keyStates[virtualKeyCode]!;
     }
   }
@@ -409,7 +409,7 @@ class KeyboardInputService extends GetxService {
   /// modifiers list are pressed. All other modifiers are suspended and reenabled
   /// after the action is executed.
   Future<T> doWithModifiers<T>(List<int> modifiers, Future<T> Function() action) async {
-    logger.log('doWithModifiers: ${modifiers.map((m) => EnIntKbMapper.keyToString(m)).toList()}');
+    logger.log('doWithModifiers: ${modifiers.map((m) => vkToString(m)).toList()}');
     // unwantedModifiers are modifiers that are currently pressed but are not
     // in the modifiers list of the key action. They should be suspended.
     final unwantedModifiers = modifierStates.entries
@@ -417,18 +417,9 @@ class KeyboardInputService extends GetxService {
         .where((m) => m.state == KeyState.DOWN && !modifiers.contains(m.vk))
         .toList();
 
-    final unwantedSuspendedModifiers =
-        unwantedModifiers.where((m) => m.suspended).toList();
-    logger.log('unwantedSuspendedModifiers: '
-        '${unwantedSuspendedModifiers.map((m) => EnIntKbMapper.keyToString(m.vk)).toList()}');
-    logger.log('unwantedModifiers: '
-        '${unwantedModifiers.map((m) => EnIntKbMapper.keyToString(m.vk)).toList()}');
-
     List<_KeyTracker> suspendedModifiers = [];
     if (unwantedModifiers.isNotEmpty) {
       suspendedModifiers = await _suspendModifierKeys(unwantedModifiers);
-      logger.log('suspendedModifiers: '
-          '${suspendedModifiers.map((m) => EnIntKbMapper.keyToString(m.vk)).toList()}');
     }
 
     /// temporaryModifiers are modifiers that are not currently pressed but are
@@ -573,7 +564,7 @@ class KeyboardInputService extends GetxService {
         break;
     }
 
-    logger.log('doHotkeyStep: ${EnIntKbMapper.keyToString(step.keyCode)} ${step.actionType}');
+    logger.log('doHotkeyStep: ${vkToString(step.keyCode)} ${step.actionType}');
 
     return true;
   }

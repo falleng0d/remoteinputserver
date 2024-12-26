@@ -5,6 +5,7 @@ import 'package:remotecontrol_lib/keyboard.dart';
 import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/proto/input.pbgrpc.dart' as pb;
 import 'package:remotecontrol_lib/virtualkeys.dart';
+import 'package:remotecontrol/win32vk.dart';
 
 import 'input_config.dart';
 import 'win32_input_service.dart';
@@ -25,15 +26,22 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
   /* region Behavior */
   @override
   Future<pb.Response> pressKey(ServiceCall call, pb.Key request) async {
-    final actionType = pbToKeyActionType(request.type);
-    final virtualKey = request.id;
-    final options = request.hasOptions() ? KeyOptions.fromPb(request.options) : null;
+    try {
+      final actionType = pbToKeyActionType(request.type);
+      final virtualKey = keyToVk(request.id);
+      final options = request.hasOptions() ? KeyOptions.fromPb(request.options) : null;
 
-    final result = await keyboardInputService.pressKey(virtualKey, actionType, options);
+      final result = await keyboardInputService.pressKey(virtualKey, actionType, options);
+      _logger.info('Key ${keyToString(request.id)} ${request.type} ${options?.toString()}');
 
-    _logger.info('Key ${request.type}: ${EnIntKbMapper.keyToString(request.id)} ${options?.toString()}');
-
-    return pb.Response()..message = result.toString();
+      return pb.Response()..message = result.toString();
+    } catch (e) {
+      _logger.error('Error pressing key '
+          'kId: ${request.id} '
+          'type: ${request.type} '
+          'error: ${e.toString()}');
+      rethrow;
+    }
   }
 
   @override
@@ -43,7 +51,7 @@ class InputMethodsService extends pb.InputMethodsServiceBase {
     final hotkey = request.hotkey;
     final options = request.hasOptions() ? HotkeyOptions.fromPb(request.options) : null;
 
-    final hotkeySteps = stepsFromString(hotkey);
+    final hotkeySteps = stepsFromString(hotkey, stringToVk);
 
     final result =
         await keyboardInputService.pressHotkey(hotkey, actionType, hotkeySteps, options);

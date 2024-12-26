@@ -1,7 +1,7 @@
 import 'dart:io';
 
+import 'package:remotecontrol/win32vk.dart';
 import 'package:remotecontrol_lib/logger.dart';
-import 'package:remotecontrol_lib/virtualkeys.dart';
 
 import '../services/win32_input_service.dart';
 
@@ -22,7 +22,7 @@ printModifierStates(Win32InputService service) {
   final Map<int, int> modifierStates = service.getModifierStates();
 
   for (var entry in modifierStates.entries) {
-    final modifier = EnIntKbMapper.keyToString(entry.key);
+    final modifier = vkToString(entry.key);
     final state = entry.value;
 
     print("modifier: $modifier, state: $state");

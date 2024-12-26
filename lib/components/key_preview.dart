@@ -1,6 +1,8 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:get/get.dart';
+import 'package:remotecontrol_lib/logger.dart';
 import 'package:remotecontrol_lib/virtualkeys.dart';
+import 'package:remotecontrol/win32vk.dart';
 
 import '../controllers/input_controller.dart';
 import '../services/win32_input_service.dart';
@@ -11,7 +13,7 @@ class _KbdKey {
 
   get state => _state != null ? '_$_state' : null;
 
-  get label => EnIntKbMapper.keyToString(virtualKeyCode);
+  get label => vkToString(virtualKeyCode);
 
   _KbdKey(this.virtualKeyCode, {KeyActionType? state}) : _state = state;
 
@@ -55,7 +57,7 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
 
   void inputEventHandler(InputReceivedEvent event, InputReceivedData data) {
     switch (data.runtimeType) {
-      case KeyboardKeyReceivedData _:
+      case const (KeyboardKeyReceivedData):
         var d = data as KeyboardKeyReceivedData;
         setState(() {
           // add to front of list
@@ -66,7 +68,7 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
         });
         updateModifiers();
         break;
-      case MouseButtonReceivedData _:
+      case const (MouseButtonReceivedData):
         var d = data as MouseButtonReceivedData;
         setState(() {
           // add to front of list
@@ -75,6 +77,8 @@ class _KeyHistoryPreviewState extends State<KeyHistoryPreview> {
             _keys.removeLast();
           }
         });
+      default:
+        logger.warning('[KeyHistoryPreview] Unknown data type: ${data.runtimeType}');
     }
   }
 
