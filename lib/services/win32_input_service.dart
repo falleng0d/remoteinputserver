@@ -262,6 +262,8 @@ class _HotkeyTracker {
 /// - Key combinations (e.g. Ctrl + C)
 /// - Key sequences (e.g. Ctrl + C, Ctrl + V)
 /// - Key repeats
+/// TODO: Convert the keys to windows on the controller before arriving on this class
+/// TODO: Remove EnIntKbMapper if not needed
 class KeyboardInputService extends GetxService {
   final Win32InputService _inputService;
   final KeyboardInputConfig _config;
@@ -481,9 +483,11 @@ class KeyboardInputService extends GetxService {
     if (options != null &&
         options.modifiers != null &&
         options.disableUnwantedModifiers == true) {
+      // Disable unwanted modifiers before sending the key
       final modifiers = options.modifiers!;
       callback() async => await _sendVirtualKey(virtualKeyCode, keyActionType, options);
 
+      // Press key with wanted modifiers
       result = await doWithModifiers(modifiers, callback);
     } else {
       // No options
