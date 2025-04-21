@@ -494,7 +494,7 @@ class KeyboardInputService extends GetxService {
       result = await _sendVirtualKey(virtualKeyCode, keyActionType, options);
     }
 
-    if (options?.noRepeat == true) {
+    if (options?.noRepeat == true || options?.keyRepeatInterval == 0) {
       return result;
     }
 
